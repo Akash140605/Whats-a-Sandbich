@@ -54,7 +54,7 @@ export default function Menu() {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-[#fbd536] pb-24">
 
       {/* HEADER */}
       <motion.div initial={{ y: -30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.4 }}
@@ -147,7 +147,7 @@ function FoodCard({ item, addItem }) {
   return (
     <div className="bg-white border rounded-lg transition p-3 flex gap-3">
       <img
-        src={getFoodImage(item.name)}
+        src={item.image}
         alt={item.name}
         loading="lazy"
         className="w-24 h-24 object-cover rounded-md"

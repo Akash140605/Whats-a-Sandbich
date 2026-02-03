@@ -1,27 +1,108 @@
+const submarineImages = import.meta.glob(
+  "@assets/items/Submarine Sandwiches/*.jpg",
+  { eager: true, import: "default" }
+);
+const submarineImageMap = Object.fromEntries(
+  Object.entries(submarineImages).map(([path, img]) => {
+    const fileName = path.split("/").pop();
+    return [fileName, img];
+  })
+);
+const superheroImages = import.meta.glob(
+  "@assets/items/Superhero Panini/*.jpg",
+  { eager: true, import: "default" }
+);
+const superheroImageMap = Object.fromEntries(
+  Object.entries(superheroImages).map(([path, img]) => {
+    const fileName = path.split("/").pop();
+    return [fileName, img];
+  })
+);
+const starterImages = import.meta.glob(
+  "@assets/items/What  A Starter/*.jpg",
+  { eager: true, import: "default" }
+);
+const starterImageMap = Object.fromEntries(
+  Object.entries(starterImages).map(([path, img]) => {
+    const fileName = path.split("/").pop();
+    return [fileName, img];
+  })
+);
+const burgerImages = import.meta.glob(
+  "@assets/items/What A Burger/*.jpg",
+  { eager: true, import: "default" }
+);
+const burgerImageMap = Object.fromEntries(
+  Object.entries(burgerImages).map(([path, img]) => {
+    const fileName = path.split("/").pop();
+    return [fileName, img];
+  })
+);
+const friesImages = import.meta.glob(
+  "@assets/items/What A Loaded Fries/*.jpg",
+  { eager: true, import: "default" }
+);
+const friesImageMap = Object.fromEntries(
+  Object.entries(friesImages).map(([path, img]) => {
+    const fileName = path.split("/").pop();
+    return [fileName, img];
+  })
+);
+const pavImages = import.meta.glob(
+  "@assets/items/What A Pav/*.jpg",
+  { eager: true, import: "default" }
+);
+const pavImageMap = Object.fromEntries(
+  Object.entries(pavImages).map(([path, img]) => {
+    const fileName = path.split("/").pop();
+    return [fileName, img];
+  })
+);
+const saladImages = import.meta.glob(
+  "@assets/items/What A Salad/*.jpg",
+  { eager: true, import: "default" }
+);
+const saladImageMap = Object.fromEntries(
+  Object.entries(saladImages).map(([path, img]) => {
+    const fileName = path.split("/").pop();
+    return [fileName, img];
+  })
+);
+const slicedImages = import.meta.glob(
+  "@assets/items/What A Sliced Sandwich/*.jpg",
+  { eager: true, import: "default" }
+);
+const slicedImageMap = Object.fromEntries(
+  Object.entries(slicedImages).map(([path, img]) => {
+    const fileName = path.split("/").pop();
+    return [fileName, img];
+  })
+);
+
 export const MENU_DATA = [
   {
     category: "Submarine Sandwiches - Veg",
     items: [
-      { id:"subveg1", name:"Veggie Classic", priceMini:49, priceMonster:99, type:"veg", popular:true },
-      { id:"subveg2", name:"Masala Veg", priceMini:99, priceMonster:199, type:"veg", popular:true },
-      { id:"subveg3", name:"Aloo Masala", priceMini:139, priceMonster:279, type:"veg" },
-      { id:"subveg4", name:"Veg Crispy", priceMini:149, priceMonster:299, type:"veg", popular:true },
-      { id:"subveg5", name:"Spinach & Corn", priceMini:169, priceMonster:319, type:"veg" },
-      { id:"subveg6", name:"Mozzarella Cheesy Fingers", priceMini:179, priceMonster:339, type:"veg", popular:true },
-      { id:"subveg7", name:"Paneer Masala", priceMini:199, priceMonster:399, type:"veg", popular:true },
-      { id:"subveg8", name:"Paneer Crackling", priceMini:199, priceMonster:399, type:"veg", popular:true }
+      { id:"subveg1", name:"Veggie Classic", priceMini:49, priceMonster:99, type:"veg", popular:true, image: submarineImageMap["6. Veggie Classic 4_(mini monster).jpg"] },
+      { id:"subveg2", name:"Masala Veg", priceMini:99, priceMonster:199, type:"veg", popular:true, image: submarineImageMap["7.Masala Veg Sub 4_(mini monster).jpg"] },
+      { id:"subveg3", name:"Aloo Masala", priceMini:139, priceMonster:279, type:"veg", image: submarineImageMap["8.Aloo Tikki Sub 4_(mini monster).jpg"] },
+      { id:"subveg4", name:"Veg Crispy", priceMini:149, priceMonster:299, type:"veg", popular:true, image: submarineImageMap["9.Veg Crispy 4_(mini monster).jpg"] },
+      { id:"subveg5", name:"Spinach & Corn", priceMini:169, priceMonster:319, type:"veg", image: submarineImageMap["10.Spinach _ Corn 4_(mini monster).jpg"] },
+      { id:"subveg6", name:"Mozzarella Cheesy Fingers", priceMini:179, priceMonster:339, type:"veg", popular:true, image: submarineImageMap["11.Mozzarella Cheesy Finger 4_(mini monster).jpg"] },
+      { id:"subveg7", name:"Paneer Masala", priceMini:199, priceMonster:399, type:"veg", popular:true, image: submarineImageMap["12.Paneer Tikka 4_mini monster.jpg"] },
+      { id:"subveg8", name:"Paneer Crackling", priceMini:199, priceMonster:399, type:"veg", popular:true, image: submarineImageMap["13.Paneer Crackling 4_mini mnster.jpg"] }
     ]
   },
 
   {
     category: "Submarine Sandwiches - Chicken",
     items: [
-      { id:"subchk1", name:"Chicken Chunks", priceSmall:149, priceMonster:299, type:"nonveg", popular:true },
-      { id:"subchk2", name:"Chicken Crispy", priceSmall:179, priceMonster:359, type:"nonveg", popular:true },
-      { id:"subchk3", name:"Chicken Super Patty", priceSmall:189, priceMonster:379, type:"nonveg" },
-      { id:"subchk4", name:"Chicken Seekh Sub", priceSmall:189, priceMonster:379, type:"nonveg", popular:true },
-      { id:"subchk5", name:"Chicken Masala Sub", priceSmall:199, priceMonster:399, type:"nonveg", popular:true },
-      { id:"subchk6", name:"Chicken Crackling", priceSmall:229, priceMonster:459, type:"nonveg", popular:true }
+      { id:"subchk1", name:"Chicken Chunks", priceSmall:149, priceMonster:299, type:"nonveg", popular:true, image: submarineImageMap["14.chicken chunks 4_mini monster (2).JPG"] },
+      { id:"subchk2", name:"Chicken Crispy", priceSmall:179, priceMonster:359, type:"nonveg", popular:true, image: submarineImageMap["15.chicken crispy sub 4_mini monster.jpg"] },
+      { id:"subchk3", name:"Chicken Super Patty", priceSmall:189, priceMonster:379, type:"nonveg", image: submarineImageMap["16.chicken super patty 4_mini monster.jpg"] },
+      { id:"subchk4", name:"Chicken Seekh Sub", priceSmall:189, priceMonster:379, type:"nonveg", popular:true, image: submarineImageMap["18.chicken seekh 4_mini monster.jpg"] },
+      { id:"subchk5", name:"Chicken Masala Sub", priceSmall:199, priceMonster:399, type:"nonveg", popular:true, image: submarineImageMap["Chicken Masala 4 Inch.jpg"] },
+      { id:"subchk6", name:"Chicken Crackling", priceSmall:229, priceMonster:459, type:"nonveg", popular:true, image: submarineImageMap["19. chicken crackling sub 4_mini monster.jpg"]}
     ]
   },
 
@@ -64,7 +145,7 @@ export const MENU_DATA = [
   {
     category: "Superhero Panini",
     items: [
-      { id:"panini1", name:"Dr. Doom Veg & Cheesy Superhero", price:199, type:"veg" },
+      { id:"panini1", name:"Dr. Doom Veg & Cheesy Superhero", price:199, type:"veg", image: superheroImageMap["Dr. Doom Veg and Cheesy Mini Hero (Small).jpg"] },
       { id:"panini2", name:"Agent Aloo Masala Superhero", price:329, type:"veg", popular:true },
       { id:"panini3", name:"Professor X Paneer Masala Superhero", price:339, type:"veg", popular:true },
       { id:"panini4", name:"Captain Veg Cutlet Superhero", price:339, type:"veg" },
@@ -83,7 +164,7 @@ export const MENU_DATA = [
   {
     category: "Burgers",
     items: [
-      { id:"burger1", name:"Aloo Masala Burger", price:99, type:"veg" },
+      { id:"burger1", name:"Aloo Masala Burger", price:99, type:"veg", image: burgerImageMap["36.aloo masala burger_.jpg"] },
       { id:"burger2", name:"Veg Crispy Burger", price:149, type:"veg", popular:true },
       { id:"burger3", name:"Spinach & Corn Burger", price:159, type:"veg" },
       { id:"burger4", name:"Paneer Crackling Burger", price:189, type:"veg", popular:true },
@@ -96,7 +177,7 @@ export const MENU_DATA = [
   {
     category: "Salads",
     items: [
-      { id:"salad1", name:"Veggie Classic Salad", price:99, type:"veg" },
+      { id:"salad1", name:"Veggie Classic Salad", price:99, type:"veg", image: saladImageMap["Veggi Classic Salad.jpg"] },
       { id:"salad2", name:"Veg Crispy Salad", price:169, type:"veg" },
       { id:"salad3", name:"Paneer Masala Salad", price:199, type:"veg", popular:true },
       { id:"salad4", name:"Paneer Crackling Salad", price:199, type:"veg", popular:true },
@@ -110,7 +191,7 @@ export const MENU_DATA = [
   {
     category: "Pav Burgers",
     items: [
-      { id:"pav1", name:"Cheesy Masala Veg Pav Burger", price:59, type:"veg" },
+      { id:"pav1", name:"Cheesy Masala Veg Pav Burger", price:59, type:"veg",image: pavImageMap["Cheesy Masala Veg Pav Burger.jpg"] },
       { id:"pav2", name:"Spicy Peri Peri Vada Pav Burger", price:99, type:"veg", popular:true },
       { id:"pav3", name:"Veg Crispy Pav Burger", price:149, type:"veg", popular:true },
       { id:"pav4", name:"Chicken Chunks Cheesy Pav Burger", price:149, type:"nonveg", popular:true },
@@ -122,7 +203,7 @@ export const MENU_DATA = [
   {
     category: "Starters",
     items: [
-      { id:"starter1", name:"Masala Mumbai Wada & Cheese Sauce", price:135, type:"veg" },
+      { id:"starter1", name:"Masala Mumbai Wada & Cheese Sauce", price:135, type:"veg", image: starterImageMap["56.masala mumbai wada with sause 2pcs.jpg"] },
       { id:"starter2", name:"Veg Cutlet with Cheese Sauce", price:135, type:"veg" },
       { id:"starter3", name:"Spinach & Corn Cutlet with Cheese Sauce", price:135, type:"veg" },
       { id:"starter4", name:"Chicken Cutlet with Cheese Sauce", price:145, type:"nonveg" },
@@ -135,7 +216,7 @@ export const MENU_DATA = [
   {
     category: "Loaded Fries",
     items: [
-      { id:"fries1", name:"Regular French Fries", price:69, type:"veg" },
+      { id:"fries1", name:"Regular French Fries", price:69, type:"veg", image: friesImageMap["51.Regular fries.jpg"] },
       { id:"fries2", name:"Loaded Cheesy Fries", price:129, type:"veg", popular:true },
       { id:"fries3", name:"Loaded Chilli Garlic Cheesy Fries", price:145, type:"veg" },
       { id:"fries4", name:"Cheesy Fingers & Loaded Fries", price:199, type:"veg", popular:true },
