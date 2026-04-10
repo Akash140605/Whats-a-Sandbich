@@ -1,29 +1,38 @@
 @import "tailwindcss";
-@keyframes floatSlow {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(15px); }
+
+/* Brand theme (from image) */
+:root{
+  --brand-bg: #FBD536;      /* mustard yellow */
+  --brand-bg-2:#FAD945;     /* lighter yellow */
+  --brand-primary:#C03327;  /* deep red */
+  --brand-primary-2:#7E2A17;/* dark maroon */
+  --brand-accent:#D69E3D;   /* gold/brown */
+  --brand-surface:#ffffff;  /* cards */
+  --brand-text:#1f2937;     /* gray-800 */
 }
 
-@keyframes floatFast {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(25px); }
+/* OPTIONAL: if you support dark mode later */
+.dark{
+  --brand-bg:#1b1b1b;
+  --brand-bg-2:#111111;
+  --brand-primary:#ff4a3d;
+  --brand-primary-2:#b12a20;
+  --brand-accent:#f1c04c;
+  --brand-surface:#0f0f0f;
+  --brand-text:#f9fafb;
 }
 
-@keyframes gradientFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+/* Your animations (keep) */
+@keyframes floatSlow { 0%,100%{transform:translateY(0)} 50%{transform:translateY(15px)} }
+@keyframes floatFast { 0%,100%{transform:translateY(0)} 50%{transform:translateY(25px)} }
+@keyframes gradientFlow { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
 
-.animate-floatSlow {
-  animation: floatSlow 6s ease-in-out infinite;
-}
+.animate-floatSlow { animation: floatSlow 6s ease-in-out infinite; }
+.animate-floatFast { animation: floatFast 4s ease-in-out infinite; }
+.animate-gradient { background-size: 200% 200%; animation: gradientFlow 6s ease infinite; }
 
-.animate-floatFast {
-  animation: floatFast 4s ease-in-out infinite;
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradientFlow 6s ease infinite;
+/* Global page look */
+body{
+  background: linear-gradient(135deg, var(--brand-bg), var(--brand-bg-2));
+  color: var(--brand-text);
 }
