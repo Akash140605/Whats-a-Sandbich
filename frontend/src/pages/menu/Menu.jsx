@@ -18,7 +18,7 @@ const parsePrice = (v) => {
 };
 
 // 30% discount helper
-const applyDiscount = (originalPrice) => Math.round(parsePrice(originalPrice) * 0.7);
+const applyDiscount = (originalPrice) => Math.round(parsePrice(originalPrice) * 0.85);
 
 // Sizes
 const SIZE_4 = "4 Inches";
@@ -415,7 +415,7 @@ function FoodCard({ item, sectionCategory, addItem, qtyById }) {
         transition={{ repeat: Infinity, duration: 2 }}
         className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-extrabold px-2 py-1 rounded-lg shadow-lg z-10"
       >
-        30% OFF
+      15% OFF
       </motion.div>
 
       <img

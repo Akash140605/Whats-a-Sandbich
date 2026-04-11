@@ -273,7 +273,7 @@ export default function Home() {
                     className="text-white text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-none"
                     style={{ textShadow: "0 10px 25px rgba(0,0,0,0.35)" }}
                   >
-                    FLAT 30% OFF ON ALL ITEMS!
+                    FLAT 15% OFF ON ALL ITEMS!
                   </motion.h2>
                 </div>
 
@@ -436,7 +436,7 @@ export default function Home() {
                     Today’s Deal
                   </p>
                   <p className="text-sm font-black text-gray-900 truncate">
-                    Flat 30% off on everything
+                    Flat 15% off on everything
                   </p>
                 </div>
                 <span
@@ -541,7 +541,7 @@ export default function Home() {
                     className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-extrabold text-white shadow-lg"
                     style={{ background: `linear-gradient(90deg, ${BRAND.r1}, ${BRAND.r2})` }}
                   >
-                    30% OFF
+                    15% OFF
                   </motion.span>
                 </div>
 
@@ -630,7 +630,7 @@ export default function Home() {
                     className="absolute top-3 right-3 text-[10px] font-black text-white px-3 py-1 rounded-full shadow-lg"
                     style={{ background: `linear-gradient(90deg, ${BRAND.r1}, ${BRAND.r2})` }}
                   >
-                    30% OFF
+                    15% OFF
                   </span>
                 </div>
 
