@@ -1,4 +1,9 @@
 // Image imports using Vite's import.meta.glob
+const DEFAULT_IMG =
+  "https://images.pexels.com/photos/70497/pexels-photo-70497.jpeg";
+
+const paniniWrapsImageMap = {};
+
 const submarineImages = import.meta.glob(
   "@/assets/items/Submarine Sandwiches/*.jpg",
   { eager: true, import: "default" }
@@ -21,16 +26,16 @@ const superheroImageMap = Object.fromEntries(
   })
 );
 
-const starterImages = import.meta.glob(
-  "@/assets/items/What  A Starter/*.jpg",
-  { eager: true, import: "default" }
-);
-const starterImageMap = Object.fromEntries(
-  Object.entries(starterImages).map(([path, img]) => {
-    const fileName = path.split("/").pop();
-    return [fileName, img];
-  })
-);
+// const starterImages = import.meta.glob(
+//   "@/assets/items/What  A Starter/*.jpg",
+//   { eager: true, import: "default" }
+// );
+// const starterImageMap = Object.fromEntries(
+//   Object.entries(starterImages).map(([path, img]) => {
+//     const fileName = path.split("/").pop();
+//     return [fileName, img];
+//   })
+// );
 
 const burgerImages = import.meta.glob(
   "@/assets/items/What A Burger/*.jpg",
@@ -98,27 +103,27 @@ const wrapsImageMap = Object.fromEntries(
   })
 );
 
-const miniHeroImages = import.meta.glob(
-  "@/assets/items/Mini Hero And Sidekicks/*.jpg",
-  { eager: true, import: "default" }
-);
-const miniHeroImageMap = Object.fromEntries(
-  Object.entries(miniHeroImages).map(([path, img]) => {
-    const fileName = path.split("/").pop();
-    return [fileName, img];
-  })
-);
+// const miniHeroImages = import.meta.glob(
+//   "@/assets/items/Mini Hero And Sidekicks/*.jpg",
+//   { eager: true, import: "default" }
+// );
+// const miniHeroImageMap = Object.fromEntries(
+//   Object.entries(miniHeroImages).map(([path, img]) => {
+//     const fileName = path.split("/").pop();
+//     return [fileName, img];
+//   })
+// );
 
-const paniniWrapsImages = import.meta.glob(
-  "@/assets/items/Cheesy Panini & Wraps/*.jpg",
-  { eager: true, import: "default" }
-);
-const paniniWrapsImageMap = Object.fromEntries(
-  Object.entries(paniniWrapsImages).map(([path, img]) => {
-    const fileName = path.split("/").pop();
-    return [fileName, img];
-  })
-);
+// const paniniWrapsImages = import.meta.glob(
+//   "@/assets/items/Cheesy Panini & Wraps/*.jpg",
+//   { eager: true, import: "default" }
+// );
+// const paniniWrapsImageMap = Object.fromEntries(
+//   Object.entries(paniniWrapsImages).map(([path, img]) => {
+//     const fileName = path.split("/").pop();
+//     return [fileName, img];
+//   })
+// );
 // menu.js (top area)
 const drinks = import.meta.glob("@assets/items/Drinks/*.{jpg,jpeg,png,webp}", {
   eager: true,
@@ -489,148 +494,148 @@ export const MENU_DATA = [
     ],
   },
 
-  {
-    category: "Mini Hero And Sidekicks",
-    items: [
-      {
-        id: "mini1",
-        name: "Dr. Doom Veg & Cheesy Mini Hero",
-        price: 99,
-        type: "veg",
-        image: miniHeroImageMap["Dr. Doom Veg and Cheesy Mini Hero (Small).jpg"],
-      },
-      {
-        id: "mini2",
-        name: "Professor X Paneer Tikka Mini Hero",
-        price: 199,
-        type: "veg",
-        popular: true,
-        image: miniHeroImageMap["Professor. X Paneer Tikka Mini_Hero (BESTSELLER).jpg"],
-      },
-      {
-        id: "mini3",
-        name: "Thanos Chicken Tikka Mini Hero",
-        price: 199,
-        type: "nonveg",
-        popular: true,
-        image: miniHeroImageMap["Thanos Chicken Tikka Mini Hero Panini (Small).jpg"],
-      },
-      {
-        id: "mini4",
-        name: "Captain Fried Chicken Mini Hero",
-        price: 229,
-        type: "nonveg",
-        popular: true,
-        image: miniHeroImageMap["Captain Fried Chicken Mini Hero Panini (Best Seller) (Small).jpg"],
-      },
-    ],
-  },
+  // {
+  //   category: "Mini Hero And Sidekicks",
+  //   items: [
+  //     {
+  //       id: "mini1",
+  //       name: "Dr. Doom Veg & Cheesy Mini Hero",
+  //       price: 99,
+  //       type: "veg",
+  //       image: miniHeroImageMap["Dr. Doom Veg and Cheesy Mini Hero (Small).jpg"],
+  //     },
+  //     {
+  //       id: "mini2",
+  //       name: "Professor X Paneer Tikka Mini Hero",
+  //       price: 199,
+  //       type: "veg",
+  //       popular: true,
+  //       image: miniHeroImageMap["Professor. X Paneer Tikka Mini_Hero (BESTSELLER).jpg"],
+  //     },
+  //     {
+  //       id: "mini3",
+  //       name: "Thanos Chicken Tikka Mini Hero",
+  //       price: 199,
+  //       type: "nonveg",
+  //       popular: true,
+  //       image: miniHeroImageMap["Thanos Chicken Tikka Mini Hero Panini (Small).jpg"],
+  //     },
+  //     {
+  //       id: "mini4",
+  //       name: "Captain Fried Chicken Mini Hero",
+  //       price: 229,
+  //       type: "nonveg",
+  //       popular: true,
+  //       image: miniHeroImageMap["Captain Fried Chicken Mini Hero Panini (Best Seller) (Small).jpg"],
+  //     },
+  //   ],
+  // },
 
-  {
-    category: "Superhero Panini",
-    items: [
-      {
-        id: "panini1",
-        name: "Agent Aloo Masala Superhero",
-        price: 329,
-        type: "veg",
-        popular: true,
-        image: superheroImageMap["Agent Aloo Masalasupe Hero Panini (Large).jpg"],
-      },
-      {
-        id: "panini2",
-        name: "Professor X Paneer Tikka Superhero",
-        price: 339,
-        type: "veg",
-        popular: true,
-        image: superheroImageMap["Professor. X Paneer Tikka Mini_Hero (BESTSELLER).jpg"],
-      },
-      {
-        id: "panini3",
-        name: "Captain Fried Chicken Mini Hero Panini",
-        price: 229,
-        type: "nonveg",
-        image: superheroImageMap["Captain Fried Chicken Mini Hero Panini (Best Seller) (Small).jpg"],
-      },
-      {
-        id: "panini4",
-        name: "Captain Fried Chicken Hero Panini",
-        price: 459,
-        type: "nonveg",
-        image: superheroImageMap["Captain Fried Chicken Hero Panini (Best Seller) (Large).jpg"],
-      },
-      {
-        id: "panini5",
-        name: "Colonel Chicken Cutlet Super Hero Panini",
-        price: 299,
-        type: "nonveg",
-        image: superheroImageMap["Colonel Chicken Cutlet Super Hero Panini (Large).jpg"],
-      },
-      {
-        id: "panini6",
-        name: "Dr. Doom Veg and Cheesy Super Hero Panini",
-        price: 199,
-        type: "veg",
-        image: superheroImageMap["Dr. Doom Veg and Cheesy Super Hero Panini (Large).jpg"],
-      },
-      {
-        id: "panini7",
-        name: "Mr. Fantastic Cheesy Fingersuper Hero Panini",
-        price: 339,
-        type: "veg",
-        image: superheroImageMap["Mr. Fantastic Cheesy Fingersuper Hero Panini (Large).jpg"],
-      },
-      {
-        id: "panini8",
-        name: "Nuclear Chicken Nuggets Super Hero Panini",
-        price: 379,
-        type: "nonveg",
-        image: superheroImageMap["Nuclear Chicken Nuggets Super Hero Panini (Large).jpg"],
-      },
-      {
-        id: "panini9",
-        name: "Popeye Spinach & Corn Super Hero Panini",
-        price: 339,
-        type: "veg",
-        image: superheroImageMap["Popeye Spinach & Corn Super Hero Panini (Large).jpg"],
-      },
-      {
-        id: "panini10",
-        name: "Prof X. Paneer Super Hero Panini",
-        price: 339,
-        type: "veg",
-        image: superheroImageMap["Prof X. Paneer Tikka Super Hero Panini (Large).jpg"],
-      },
-      {
-        id: "panini11",
-        name: "Spidey Seekh Super Hero Panini",
-        price: 399,
-        type: "nonveg",
-        image: superheroImageMap["Spidey Seekh Super Hero Panini (Large).jpg"],
-      },
-      {
-        id: "panini12",
-        name: "Super Duper Chicken Super Hero Panini",
-        price: 379,
-        type: "nonveg",
-        image: superheroImageMap["Super Duper Chicken Super Hero Panini (Large).jpg"],
-      },
-      {
-        id: "panini13",
-        name: "The Hulk Paneer Crackling Super Hero Panini",
-        price: 399,
-        type: "veg",
-        image: superheroImageMap["The Hulk Paneer Crackling Super Hero Panini (Large).jpg"],
-      },
-      {
-        id: "panini14",
-        name: "Thanos Chicken Tikka Super Hero Panini",
-        price: 359,
-        type: "nonveg",
-        image: superheroImageMap["Thanos Chicken Tikka Super Hero Panini (Large).jpg"],
-      },
-    ],
-  },
+  // {
+  //   category: "Superhero Panini",
+  //   items: [
+  //     {
+  //       id: "panini1",
+  //       name: "Agent Aloo Masala Superhero",
+  //       price: 329,
+  //       type: "veg",
+  //       popular: true,
+  //       image: superheroImageMap["Agent Aloo Masalasupe Hero Panini (Large).jpg"],
+  //     },
+  //     {
+  //       id: "panini2",
+  //       name: "Professor X Paneer Tikka Superhero",
+  //       price: 339,
+  //       type: "veg",
+  //       popular: true,
+  //       image: superheroImageMap["Professor. X Paneer Tikka Mini_Hero (BESTSELLER).jpg"],
+  //     },
+  //     {
+  //       id: "panini3",
+  //       name: "Captain Fried Chicken Mini Hero Panini",
+  //       price: 229,
+  //       type: "nonveg",
+  //       image: superheroImageMap["Captain Fried Chicken Mini Hero Panini (Best Seller) (Small).jpg"],
+  //     },
+  //     {
+  //       id: "panini4",
+  //       name: "Captain Fried Chicken Hero Panini",
+  //       price: 459,
+  //       type: "nonveg",
+  //       image: superheroImageMap["Captain Fried Chicken Hero Panini (Best Seller) (Large).jpg"],
+  //     },
+  //     {
+  //       id: "panini5",
+  //       name: "Colonel Chicken Cutlet Super Hero Panini",
+  //       price: 299,
+  //       type: "nonveg",
+  //       image: superheroImageMap["Colonel Chicken Cutlet Super Hero Panini (Large).jpg"],
+  //     },
+  //     {
+  //       id: "panini6",
+  //       name: "Dr. Doom Veg and Cheesy Super Hero Panini",
+  //       price: 199,
+  //       type: "veg",
+  //       image: superheroImageMap["Dr. Doom Veg and Cheesy Super Hero Panini (Large).jpg"],
+  //     },
+  //     {
+  //       id: "panini7",
+  //       name: "Mr. Fantastic Cheesy Fingersuper Hero Panini",
+  //       price: 339,
+  //       type: "veg",
+  //       image: superheroImageMap["Mr. Fantastic Cheesy Fingersuper Hero Panini (Large).jpg"],
+  //     },
+  //     {
+  //       id: "panini8",
+  //       name: "Nuclear Chicken Nuggets Super Hero Panini",
+  //       price: 379,
+  //       type: "nonveg",
+  //       image: superheroImageMap["Nuclear Chicken Nuggets Super Hero Panini (Large).jpg"],
+  //     },
+  //     {
+  //       id: "panini9",
+  //       name: "Popeye Spinach & Corn Super Hero Panini",
+  //       price: 339,
+  //       type: "veg",
+  //       image: superheroImageMap["Popeye Spinach & Corn Super Hero Panini (Large).jpg"],
+  //     },
+  //     {
+  //       id: "panini10",
+  //       name: "Prof X. Paneer Super Hero Panini",
+  //       price: 339,
+  //       type: "veg",
+  //       image: superheroImageMap["Prof X. Paneer Tikka Super Hero Panini (Large).jpg"],
+  //     },
+  //     {
+  //       id: "panini11",
+  //       name: "Spidey Seekh Super Hero Panini",
+  //       price: 399,
+  //       type: "nonveg",
+  //       image: superheroImageMap["Spidey Seekh Super Hero Panini (Large).jpg"],
+  //     },
+  //     {
+  //       id: "panini12",
+  //       name: "Super Duper Chicken Super Hero Panini",
+  //       price: 379,
+  //       type: "nonveg",
+  //       image: superheroImageMap["Super Duper Chicken Super Hero Panini (Large).jpg"],
+  //     },
+  //     {
+  //       id: "panini13",
+  //       name: "The Hulk Paneer Crackling Super Hero Panini",
+  //       price: 399,
+  //       type: "veg",
+  //       image: superheroImageMap["The Hulk Paneer Crackling Super Hero Panini (Large).jpg"],
+  //     },
+  //     {
+  //       id: "panini14",
+  //       name: "Thanos Chicken Tikka Super Hero Panini",
+  //       price: 359,
+  //       type: "nonveg",
+  //       image: superheroImageMap["Thanos Chicken Tikka Super Hero Panini (Large).jpg"],
+  //     },
+  //   ],
+  // },
 
   {
     category: "Burger",
@@ -908,63 +913,63 @@ export const MENU_DATA = [
     ],
   },
 
-  {
-    category: "Starters",
-    items: [
-      {
-        id: "starter1",
-        name: "Masala Mumbai Vada with Cheese Sauce",
-        price: 135,
-        type: "veg",
-        image: starterImageMap["56.masala mumbai wada with sause 2pcs.jpg"],
-      },
-      {
-        id: "starter2",
-        name: "Veg Cutlet with Cheese Sauce",
-        price: 135,
-        type: "veg",
-        image: starterImageMap["57.veg cutlet with cheese sauce2pcs.jpg"],
-      },
-      {
-        id: "starter3",
-        name: "Spinach & Corn Cutlet with Cheese Sauce",
-        price: 135,
-        type: "veg",
-        image: starterImageMap["58.spinach and corn cutlet with cheese sauce 2pcs.jpg"],
-      },
-      {
-        id: "starter4",
-        name: "Chicken Cutlet with Cheese Sauce",
-        price: 145,
-        type: "nonveg",
-        image: starterImageMap["59.chicken cutlet with cheese sauce 2 pcs.jpg"],
-      },
-      {
-        id: "starter5",
-        name: "Chicken Chunks with Cheese Sauce",
-        price: 145,
-        type: "nonveg",
-        popular: true,
-        image: starterImageMap["60.chicken cracking starter with cheese sauce 2pcs.jpg"],
-      },
-      {
-        id: "starter6",
-        name: "Chicken Seekh with Cheese Sauce",
-        price: 145,
-        type: "nonveg",
-        popular: true,
-        image: starterImageMap["62.chicken seekh with cheese sauce 2pcs.jpg"],
-      },
-      {
-        id: "starter7",
-        name: "Chicken Crackling with Cheese Sauce",
-        price: 145,
-        type: "nonveg",
-        popular: true,
-        image: starterImageMap["61.chicken chunks with cheese sauce 5 pcs.jpg"],
-      },
-    ],
-  },
+  // {
+  //   category: "Starters",
+  //   items: [
+  //     {
+  //       id: "starter1",
+  //       name: "Masala Mumbai Vada with Cheese Sauce",
+  //       price: 135,
+  //       type: "veg",
+  //       image: starterImageMap["56.masala mumbai wada with sause 2pcs.jpg"],
+  //     },
+  //     {
+  //       id: "starter2",
+  //       name: "Veg Cutlet with Cheese Sauce",
+  //       price: 135,
+  //       type: "veg",
+  //       image: starterImageMap["57.veg cutlet with cheese sauce2pcs.jpg"],
+  //     },
+  //     {
+  //       id: "starter3",
+  //       name: "Spinach & Corn Cutlet with Cheese Sauce",
+  //       price: 135,
+  //       type: "veg",
+  //       image: starterImageMap["58.spinach and corn cutlet with cheese sauce 2pcs.jpg"],
+  //     },
+  //     {
+  //       id: "starter4",
+  //       name: "Chicken Cutlet with Cheese Sauce",
+  //       price: 145,
+  //       type: "nonveg",
+  //       image: starterImageMap["59.chicken cutlet with cheese sauce 2 pcs.jpg"],
+  //     },
+  //     {
+  //       id: "starter5",
+  //       name: "Chicken Chunks with Cheese Sauce",
+  //       price: 145,
+  //       type: "nonveg",
+  //       popular: true,
+  //       image: starterImageMap["60.chicken cracking starter with cheese sauce 2pcs.jpg"],
+  //     },
+  //     {
+  //       id: "starter6",
+  //       name: "Chicken Seekh with Cheese Sauce",
+  //       price: 145,
+  //       type: "nonveg",
+  //       popular: true,
+  //       image: starterImageMap["62.chicken seekh with cheese sauce 2pcs.jpg"],
+  //     },
+  //     {
+  //       id: "starter7",
+  //       name: "Chicken Crackling with Cheese Sauce",
+  //       price: 145,
+  //       type: "nonveg",
+  //       popular: true,
+  //       image: starterImageMap["61.chicken chunks with cheese sauce 5 pcs.jpg"],
+  //     },
+  //   ],
+  // },
 
   {
     category: "Fries",
@@ -979,18 +984,18 @@ export const MENU_DATA = [
       {
         id: "fries2",
         name: "Loaded Cheesy Fries",
-        price: 129,
+        price: 89,
         type: "veg",
         popular: true,
         image: friesImageMap["52.cheesy finger 2pcs and loaded fries.jpg"],
       },
-      {
-        id: "fries3",
-        name: "Loaded Chilli Garlic Cheesy Fries",
-        price: 145,
-        type: "veg",
-        image: friesImageMap["53.loaded cheesy fries.jpg"],
-      },
+      // {
+      //   id: "fries3",
+      //   name: "Loaded Chilli Garlic Cheesy Fries",
+      //   price: 145,
+      //   type: "veg",
+      //   image: friesImageMap["53.loaded cheesy fries.jpg"],
+      // },
       {
         id: "fries4",
         name: "Cheesy Fingers & Loaded Fries",
@@ -1029,13 +1034,13 @@ export const MENU_DATA = [
         type: "veg",
         image: friesImageMap["Cheesy Fingers (2Pc) & Loaded Fries.jpg"],
       },
-      {
-        id: "fries9",
-        name: "Loaded Cheesy Fries",
-        price: 129,
-        type: "veg",
-        image: friesImageMap["Loaded Cheesy Fries.jpg"],
-      },
+      // {
+      //   id: "fries9",
+      //   name: "Loaded Cheesy Fries",
+      //   price: 129,
+      //   type: "veg",
+      //   image: friesImageMap["Loaded Cheesy Fries.jpg"],
+      // },
       {
         id: "fries10",
         name: "Regular Fries",
@@ -1091,13 +1096,13 @@ export const MENU_DATA = [
         type: "veg",
         image: slicedImageMap["aloo-masala-grilled-sandwich-1.jpg"],
       },
-      {
-        id: "sliced7",
-        name: "Cheese Toast",
-        price: 129,
-        type: "veg",
-        image: slicedImageMap["cheese toast.jpg"],
-      },
+      // {
+      //   id: "sliced7",
+      //   name: "Cheese Toast",
+      //   price: 129,
+      //   type: "veg",
+      //   image: slicedImageMap["cheese toast.jpg"],
+      // },
       {
         id: "sliced8",
         name: "Chicken Crispy and Cheese",
@@ -1177,15 +1182,15 @@ export const MENU_DATA = [
 },
 
 
-  {
-    category: "Extra Add Ons",
-    items: [
-      { id: "addon1", name: "Mozzarella & Cheddar Cheese", price: 99, type: "veg", addon: true },
-      { id: "addon2", name: "Spicy Peri Peri Sauce", price: 99, type: "veg", addon: true },
-      { id: "addon3", name: "Extra Chicken Patty", price: 99, type: "nonveg", addon: true },
-      { id: "addon4", name: "Cheese Sauce", price: 49, type: "veg", addon: true },
-      { id: "addon5", name: "Extra Veg Patty", price: 99, type: "veg", addon: true },
-      { id: "addon6", name: "Coke", price: 39, type: "veg", addon: true, drink: true ,image: drinks["/src/assets/items/Drinks/ck.jpeg"] },
-    ],
-  },
+  // {
+  //   category: "Extra Add Ons",
+  //   items: [
+  //     { id: "addon1", name: "Mozzarella & Cheddar Cheese", price: 99, type: "veg", addon: true },
+  //     { id: "addon2", name: "Spicy Peri Peri Sauce", price: 99, type: "veg", addon: true },
+  //     { id: "addon3", name: "Extra Chicken Patty", price: 99, type: "nonveg", addon: true },
+  //     { id: "addon4", name: "Cheese Sauce", price: 49, type: "veg", addon: true },
+  //     { id: "addon5", name: "Extra Veg Patty", price: 99, type: "veg", addon: true },
+  //     { id: "addon6", name: "Coke", price: 39, type: "veg", addon: true, drink: true ,image: drinks["/src/assets/items/Drinks/ck.jpeg"] },
+  //   ],
+  // },
 ];

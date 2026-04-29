@@ -36,3 +36,10 @@ body{
   background: linear-gradient(135deg, var(--brand-bg), var(--brand-bg-2));
   color: var(--brand-text);
 }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
