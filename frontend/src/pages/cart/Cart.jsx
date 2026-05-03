@@ -1,15 +1,11 @@
 import { useState, useMemo } from "react";
 import { useCart } from "../../context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
-/**
- * Shop coordinates (from your Google Maps link center):
- * @28.6069241,77.4333633
- */
 const SHOP = { lat: 28.6069241, lng: 77.4333633 };
 const ALLOWED_KM = 6;
 
-// Brand palette
 const Y1 = "#FFF6C9";
 const Y2 = "#FAD945";
 const Y3 = "#FBD536";
@@ -22,16 +18,21 @@ export default function Cart() {
 
   const [checking, setChecking] = useState(false);
   const [locError, setLocError] = useState("");
+  const [locationPopupOpen, setLocationPopupOpen] = useState(false);
+  const [locationMessage, setLocationMessage] = useState("");
 
   const delivery = total > 299 ? 0 : 40;
   const tax = Math.round(total * 0.05);
   const grandTotal = total + delivery + tax;
 
-  const handleCheckout = () => {
+  const safeCart = useMemo(() => (Array.isArray(cart) ? cart : []), [cart]);
+
+  const requestLocationAndCheckout = () => {
     setLocError("");
 
     if (!navigator.geolocation) {
-      setLocError("Location not supported in this browser/device.");
+      setLocationMessage("Location is not supported on this device/browser.");
+      setLocationPopupOpen(true);
       return;
     }
 
@@ -53,15 +54,41 @@ export default function Cart() {
           );
         }
       },
-      () => {
+      (err) => {
         setChecking(false);
-        setLocError("Please allow location permission (and enable GPS) to proceed.");
+
+        if (err?.code === 1) {
+          setLocationMessage(
+            "Location permission is off. Please enable location access to continue."
+          );
+        } else {
+          setLocationMessage(
+            "We could not detect your location. Please turn on GPS/location and try again."
+          );
+        }
+        setLocationPopupOpen(true);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
-  const safeCart = useMemo(() => (Array.isArray(cart) ? cart : []), [cart]);
+  const checkPermissionAndProceed = async () => {
+    setLocationPopupOpen(false);
+
+    try {
+      if (navigator.permissions?.query) {
+        const result = await navigator.permissions.query({ name: "geolocation" });
+
+        if (result.state === "denied") {
+          setLocationMessage("Location permission is blocked. Please enable it in browser settings.");
+          setLocationPopupOpen(true);
+          return;
+        }
+      }
+    } catch {}
+
+    requestLocationAndCheckout();
+  };
 
   if (!safeCart.length) {
     return (
@@ -93,7 +120,6 @@ export default function Cart() {
       style={{ background: `linear-gradient(135deg, ${Y1}, ${Y2}, ${Y3})` }}
     >
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* HEADER */}
         <div className="flex justify-between items-center mb-5">
           <div>
             <h2 className="text-2xl font-extrabold text-gray-900">Your Cart</h2>
@@ -106,7 +132,6 @@ export default function Cart() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* LEFT: ITEMS */}
           <div className="lg:col-span-2 space-y-3">
             {safeCart.map((item) => (
               <CartItem
@@ -117,7 +142,6 @@ export default function Cart() {
               />
             ))}
 
-            {/* MOBILE: BILL SUMMARY (items ke niche) */}
             <BillSummary
               className="lg:hidden mt-4"
               total={total}
@@ -126,11 +150,10 @@ export default function Cart() {
               grandTotal={grandTotal}
               locError={locError}
               checking={checking}
-              onCheckout={handleCheckout}
+              onCheckout={requestLocationAndCheckout}
             />
           </div>
 
-          {/* RIGHT: DESKTOP BILL SUMMARY */}
           <div className="hidden lg:block">
             <BillSummary
               className="sticky top-24"
@@ -140,16 +163,58 @@ export default function Cart() {
               grandTotal={grandTotal}
               locError={locError}
               checking={checking}
-              onCheckout={handleCheckout}
+              onCheckout={requestLocationAndCheckout}
             />
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {locationPopupOpen && (
+          <motion.div
+            className="fixed inset-0 z-[999] bg-black/60 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setLocationPopupOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6"
+            >
+              <h3 className="text-xl font-extrabold text-gray-900">Enable Location</h3>
+              <p className="mt-2 text-sm text-gray-700">{locationMessage}</p>
+
+              <div className="mt-5 flex gap-3">
+                <button
+                  type="button"
+                  onClick={checkPermissionAndProceed}
+                  className="flex-1 py-3 rounded-2xl text-white font-extrabold shadow-lg"
+                  style={{ background: `linear-gradient(90deg, ${R1}, ${R2})` }}
+                >
+                  Turn On Location
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setLocationPopupOpen(false)}
+                  className="px-5 py-3 rounded-2xl border border-black/10 bg-white font-extrabold text-gray-800"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-/* BILL SUMMARY (reusable) */
 function BillSummary({
   className = "",
   total,
@@ -194,12 +259,13 @@ function BillSummary({
         {checking ? "Checking location..." : "Proceed to Checkout"}
       </button>
 
-      <p className="mt-3 text-xs text-gray-700/80 font-semibold">Free delivery above ₹299</p>
+      <p className="mt-3 text-xs text-gray-700/80 font-semibold">
+        Free delivery above ₹299
+      </p>
     </div>
   );
 }
 
-/* CART ITEM */
 function CartItem({ item, addItem, removeItem }) {
   return (
     <div className="bg-white/88 backdrop-blur-xl border border-black/10 rounded-3xl shadow-lg hover:shadow-2xl transition p-3 sm:p-4 flex gap-3 items-center">
@@ -252,7 +318,6 @@ function CartItem({ item, addItem, removeItem }) {
   );
 }
 
-/* ROW */
 function Row({ label, value, highlight }) {
   return (
     <div className="flex justify-between">
@@ -267,14 +332,10 @@ function Row({ label, value, highlight }) {
   );
 }
 
-/**
- * Great-circle distance (Haversine) in KM between two {lat,lng} points.
- */
 function haversineKm(a, b) {
   const R = 6371;
   const dLat = ((b.lat - a.lat) * Math.PI) / 180;
   const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-
   const lat1 = (a.lat * Math.PI) / 180;
   const lat2 = (b.lat * Math.PI) / 180;
 
