@@ -327,7 +327,7 @@ export default function Footer() {
                   transition={{ repeat: Infinity, duration: 2 }}
                   className="inline-flex h-2 w-2 rounded-full bg-[#C03327]"
                 />
-                Timings: 11:30 AM – 10:00 PM
+                Timings: 12:00 AM – 10:30 PM
               </li>
               <li className="flex items-center gap-2">
                 <FiClock className="text-[#7E2A17]" /> Fast Home Delivery

@@ -12,7 +12,12 @@ import {
   FiMapPin,
   FiClock,
 } from "react-icons/fi";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 
 // ✅ Put your logo here (example path)
 import logo from "../../assets/lo.jpeg";
@@ -26,7 +31,7 @@ export default function Navbar() {
 
   const cartCount = (Array.isArray(cart) ? cart : []).reduce(
     (sum, item) => sum + (Number(item?.qty) || 1),
-    0
+    0,
   );
 
   // Scroll progress for navbar shadow + yellow tint bg
@@ -34,12 +39,12 @@ export default function Navbar() {
   const navShadow = useTransform(
     scrollY,
     [0, 100],
-    ["0 4px 6px rgba(0,0,0,0.06)", "0 10px 30px rgba(0,0,0,0.18)"]
+    ["0 4px 6px rgba(0,0,0,0.06)", "0 10px 30px rgba(0,0,0,0.18)"],
   );
   const navBg = useTransform(
     scrollY,
     [0, 100],
-    ["rgba(251, 213, 54, 0.85)", "rgba(251, 213, 54, 0.98)"]
+    ["rgba(251, 213, 54, 0.85)", "rgba(251, 213, 54, 0.98)"],
   );
 
   // ✅ Stop body scroll when drawer open
@@ -102,7 +107,9 @@ export default function Navbar() {
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
-                    isActive ? "bg-white/60 text-[#C03327]" : "hover:bg-white/40"
+                    isActive
+                      ? "bg-white/60 text-[#C03327]"
+                      : "hover:bg-white/40"
                   }`}
                 >
                   <FiHome className="text-lg" />
@@ -115,7 +122,11 @@ export default function Navbar() {
                         background:
                           "linear-gradient(90deg, #C03327, #7E2A17, #C03327)",
                       }}
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
                     />
                   )}
                 </motion.div>
@@ -128,7 +139,9 @@ export default function Navbar() {
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
-                    isActive ? "bg-white/60 text-[#C03327]" : "hover:bg-white/40"
+                    isActive
+                      ? "bg-white/60 text-[#C03327]"
+                      : "hover:bg-white/40"
                   }`}
                 >
                   <FiGrid className="text-lg" />
@@ -141,7 +154,11 @@ export default function Navbar() {
                         background:
                           "linear-gradient(90deg, #C03327, #7E2A17, #C03327)",
                       }}
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
                     />
                   )}
                 </motion.div>
@@ -178,7 +195,11 @@ export default function Navbar() {
                       initial={{ scale: 0, rotate: -180 }}
                       animate={{ scale: 1, rotate: 0 }}
                       exit={{ scale: 0, rotate: 180 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 25,
+                      }}
                       className="absolute -top-2 -right-2 text-gray-900 text-xs font-black px-2.5 py-1 rounded-full shadow-lg border-2 border-white"
                       style={{ backgroundColor: "#FBD536" }}
                     >
@@ -241,12 +262,15 @@ export default function Navbar() {
               transition={{ type: "spring", damping: 25 }}
               className="fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl rounded-2xl shadow-2xl z-50 p-6 border-2"
               style={{
-                background: "linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,246,201,0.92))",
+                background:
+                  "linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,246,201,0.92))",
                 borderColor: "rgba(192,51,39,0.20)",
               }}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-black text-gray-900">Search Menu</h3>
+                <h3 className="text-xl font-black text-gray-900">
+                  Search Menu
+                </h3>
                 <motion.button
                   whileTap={{ scale: 0.9, rotate: 90 }}
                   onClick={() => setSearchOpen(false)}
@@ -284,25 +308,27 @@ export default function Navbar() {
               </form>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {["Sandwich", "Burger", "Wraps", "Fries", "Drinks"].map((tag) => (
-                  <motion.button
-                    key={tag}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      setSearchQuery(tag);
-                      handleSearch({ preventDefault: () => {} });
-                    }}
-                    className="px-4 py-2 rounded-lg font-bold text-sm transition-colors border"
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.70)",
-                      borderColor: "rgba(192,51,39,0.20)",
-                      color: "#7E2A17",
-                    }}
-                  >
-                    {tag}
-                  </motion.button>
-                ))}
+                {["Sandwich", "Burger", "Wraps", "Fries", "Drinks"].map(
+                  (tag) => (
+                    <motion.button
+                      key={tag}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        setSearchQuery(tag);
+                        handleSearch({ preventDefault: () => {} });
+                      }}
+                      className="px-4 py-2 rounded-lg font-bold text-sm transition-colors border"
+                      style={{
+                        backgroundColor: "rgba(255,255,255,0.70)",
+                        borderColor: "rgba(192,51,39,0.20)",
+                        color: "#7E2A17",
+                      }}
+                    >
+                      {tag}
+                    </motion.button>
+                  ),
+                )}
               </div>
             </motion.div>
           </>
@@ -341,7 +367,11 @@ export default function Navbar() {
                 <div className="flex items-center gap-3">
                   <motion.div
                     animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 20,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
                     className="h-14 w-14 rounded-xl shadow-lg bg-white border-2 border-[#C03327]/15 overflow-hidden grid place-items-center"
                   >
                     <img
@@ -356,7 +386,9 @@ export default function Navbar() {
                     <p className="font-black text-gray-900 leading-tight text-lg">
                       What's A Sandwich
                     </p>
-                    <p className="text-xs text-[#C03327] font-bold">Greater Noida</p>
+                    <p className="text-xs text-[#C03327] font-bold">
+                      Greater Noida
+                    </p>
                   </div>
                 </div>
 
@@ -383,7 +415,7 @@ export default function Navbar() {
                   </span>
                   <span className="flex items-center gap-1">
                     <FiClock className="text-[#7E2A17]" />
-                    11:30 AM - 10 PM
+                    12:00 AM - 10:30 PM
                   </span>
                 </div>
               </div>
@@ -391,7 +423,11 @@ export default function Navbar() {
               {/* Links (scrollable area) */}
               <div className="flex-1 overflow-y-auto">
                 <div className="flex flex-col p-4 gap-2 font-bold text-gray-800">
-                  <NavLink onClick={() => setOpen(false)} to="/" className={mobileClass}>
+                  <NavLink
+                    onClick={() => setOpen(false)}
+                    to="/"
+                    className={mobileClass}
+                  >
                     {({ isActive }) => (
                       <motion.div
                         whileTap={{ scale: 0.97 }}
@@ -421,7 +457,11 @@ export default function Navbar() {
                     )}
                   </NavLink>
 
-                  <NavLink onClick={() => setOpen(false)} to="/menu" className={mobileClass}>
+                  <NavLink
+                    onClick={() => setOpen(false)}
+                    to="/menu"
+                    className={mobileClass}
+                  >
                     {({ isActive }) => (
                       <motion.div
                         whileTap={{ scale: 0.97 }}
@@ -497,7 +537,8 @@ export default function Navbar() {
                   transition={{ delay: 0.2 }}
                   className="mt-4 mx-4 p-4 rounded-xl border-2 shadow-lg"
                   style={{
-                    background: "linear-gradient(90deg, #FFF6C9, #FAD945, #FBD536)",
+                    background:
+                      "linear-gradient(90deg, #FFF6C9, #FAD945, #FBD536)",
                     borderColor: "rgba(0,0,0,0.10)",
                   }}
                 >
@@ -520,10 +561,15 @@ export default function Navbar() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                     className="p-3 rounded-xl border-2 text-center"
-                    style={{ backgroundColor: "rgba(255,255,255,0.8)", borderColor: "rgba(0,0,0,0.10)" }}
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.8)",
+                      borderColor: "rgba(0,0,0,0.10)",
+                    }}
                   >
                     <p className="text-2xl font-black text-[#7E2A17]">30min</p>
-                    <p className="text-xs text-gray-700 font-bold">Fast Delivery</p>
+                    <p className="text-xs text-gray-700 font-bold">
+                      Fast Delivery
+                    </p>
                   </motion.div>
 
                   <motion.div
@@ -531,7 +577,10 @@ export default function Navbar() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                     className="p-3 rounded-xl border-2 text-center"
-                    style={{ backgroundColor: "rgba(255,255,255,0.8)", borderColor: "rgba(0,0,0,0.10)" }}
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.8)",
+                      borderColor: "rgba(0,0,0,0.10)",
+                    }}
                   >
                     <p className="text-2xl font-black text-[#C03327]">4.9★</p>
                     <p className="text-xs text-gray-700 font-bold">Top Rated</p>
@@ -544,9 +593,14 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                   className="mt-4 mx-4 p-4 rounded-xl border-2"
-                  style={{ backgroundColor: "rgba(255,255,255,0.85)", borderColor: "rgba(0,0,0,0.10)" }}
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.85)",
+                    borderColor: "rgba(0,0,0,0.10)",
+                  }}
                 >
-                  <p className="text-xs font-black text-gray-900 mb-3">CONTACT US</p>
+                  <p className="text-xs font-black text-gray-900 mb-3">
+                    CONTACT US
+                  </p>
                   <div className="space-y-2 text-sm text-gray-800">
                     <p className="flex items-center gap-2">
                       <FiPhone className="text-[#C03327]" />
@@ -570,7 +624,10 @@ export default function Navbar() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
                 className="p-4 border-t-2 border-black/10"
-                style={{ background: "linear-gradient(180deg, rgba(255,246,201,0.9), rgba(255,255,255,0.95))" }}
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(255,246,201,0.9), rgba(255,255,255,0.95))",
+                }}
               >
                 <p className="text-center text-xs text-gray-800 font-semibold">
                   Made with love in Greater Noida

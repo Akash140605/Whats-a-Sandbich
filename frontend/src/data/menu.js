@@ -49,7 +49,7 @@ const burgerImageMap = Object.fromEntries(
 );
 
 const friesImages = import.meta.glob(
-  "@/assets/items/What A Loaded Fries/*.jpg",
+  "@/assets/items/What A Loaded Fries/*.{jpg,jpeg,png,JPG,JPEG,PNG}",
   { eager: true, import: "default" }
 );
 const friesImageMap = Object.fromEntries(
@@ -125,11 +125,34 @@ const wrapsImageMap = Object.fromEntries(
 //   })
 // );
 // menu.js (top area)
-const drinks = import.meta.glob("@assets/items/Drinks/*.{jpg,jpeg,png,webp}", {
-  eager: true,
-  import: "default",
-});
+const drinksImages = import.meta.glob(
+  "/src/assets/items/Drinks/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}",
+  {
+    eager: true,
+    import: "default",
+  }
+);
 
+const drinks = Object.fromEntries(
+  Object.entries(drinksImages).map(([path, img]) => {
+    const fileName = path.split("/").pop();
+    return [fileName, img];
+  })
+);
+const comboImages = import.meta.glob(
+  "/src/assets/items/Combo/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}",
+  {
+    eager: true,
+    import: "default",
+  }
+);
+
+const combo = Object.fromEntries(
+  Object.entries(comboImages).map(([path, img]) => {
+    const fileName = path.split("/").pop();
+    return [fileName, img];
+  })
+);
 export const MENU_DATA = [
  {
   category: "Submarine Sandwich",
@@ -971,86 +994,88 @@ export const MENU_DATA = [
   //   ],
   // },
 
-  {
-    category: "Fries",
-    items: [
-      {
-        id: "fries1",
-        name: "Regular French Fries",
-        price: 69,
-        type: "veg",
-        image: friesImageMap["51.Regular fries.jpg"],
-      },
-      {
-        id: "fries2",
-        name: "Loaded Cheesy Fries",
-        price: 89,
-        type: "veg",
-        popular: true,
-        image: friesImageMap["52.cheesy finger 2pcs and loaded fries.jpg"],
-      },
-      // {
-      //   id: "fries3",
-      //   name: "Loaded Chilli Garlic Cheesy Fries",
-      //   price: 145,
-      //   type: "veg",
-      //   image: friesImageMap["53.loaded cheesy fries.jpg"],
-      // },
-      {
-        id: "fries4",
-        name: "Cheesy Fingers & Loaded Fries",
-        price: 199,
-        type: "veg",
-        popular: true,
-        image: friesImageMap["54.cheesy chunks 3pcs and loaded fries_.jpg"],
-      },
-      {
-        id: "fries5",
-        name: "Chicken Chunks & Loaded Fries",
-        price: 219,
-        type: "nonveg",
-        popular: true,
-        image: friesImageMap["55.loaded cheesy chicken crispy fries_.jpg"],
-      },
-      {
-        id: "fries6",
-        name: "Loaded Cheesy Chicken Crispy Fries",
-        price: 299,
-        type: "nonveg",
-        popular: true,
-        image: friesImageMap["Loaded Creesy Chicken Crispy Fries.jpg"],
-      },
-      {
-        id: "fries7",
-        name: "Cheesy Chicken Chunks (3pc) & Loaded Fries",
-        price: 219,
-        type: "nonveg",
-        image: friesImageMap["Cheesy Chicken Chunks (3pc) & Loaded Fries.jpg"],
-      },
-      {
-        id: "fries8",
-        name: "Cheesy Fingers (2Pc) & Loaded Fries",
-        price: 199,
-        type: "veg",
-        image: friesImageMap["Cheesy Fingers (2Pc) & Loaded Fries.jpg"],
-      },
-      // {
-      //   id: "fries9",
-      //   name: "Loaded Cheesy Fries",
-      //   price: 129,
-      //   type: "veg",
-      //   image: friesImageMap["Loaded Cheesy Fries.jpg"],
-      // },
-      {
-        id: "fries10",
-        name: "Regular Fries",
-        price: 69,
-        type: "veg",
-        image: friesImageMap["Regular Fries.jpg"],
-      },
-    ],
-  },
-
+  
+   {
+  category: "Fries",
+  items: [
+    {
+      id: "fries10",
+      name: "Regular Fries",
+      price: 69,
+      type: "veg",
+      image: friesImageMap["Regular Fries.jpg"],
+    },
+    {
+      id: "fryotower1",
+      name: "Fryo Tower",
+      price: 99,
+      type: "veg",
+      popular: true,
+      image: friesImageMap["frio.jpeg"],
+      variants: [
+        { label: "Classic Fryo Tower", price: 99 },
+        { label: "Fryo Tower + Any Sauce", price: 119 },
+        { label: "Loaded Fryo Tower", price: 149 },
+      ],
+      sauces: [
+        "White Cheese",
+        "Cheese Jalapeno",
+        "Peri Peri",
+        "Chili Garlic",
+        "Alfredo",
+        "Chipotle",
+        "Mint Mayo",
+      ],
+      extraSaucePrice: 20,
+    },
+    {
+      id: "fries2",
+      name: "Loaded Cheesy Fries",
+      price: 89,
+      type: "veg",
+      popular: true,
+      image: friesImageMap["52.cheesy finger 2pcs and loaded fries.jpg"],
+    },
+    {
+      id: "fries4",
+      name: "Cheesy Fingers & Loaded Fries",
+      price: 199,
+      type: "veg",
+      popular: true,
+      image: friesImageMap["54.cheesy chunks 3pcs and loaded fries_.jpg"],
+    },
+    {
+      id: "fries5",
+      name: "Chicken Chunks & Loaded Fries",
+      price: 219,
+      type: "nonveg",
+      popular: true,
+      image: friesImageMap["55.loaded cheesy chicken crispy fries_.jpg"],
+    },
+    {
+      id: "fries6",
+      name: "Loaded Cheesy Chicken Crispy Fries",
+      price: 299,
+      type: "nonveg",
+      popular: true,
+      image: friesImageMap["Loaded Creesy Chicken Crispy Fries.jpg"],
+    },
+    {
+      id: "fries7",
+      name: "Cheesy Chicken Chunks (3pc) & Loaded Fries",
+      price: 219,
+      type: "nonveg",
+      image: friesImageMap["Cheesy Chicken Chunks (3pc) & Loaded Fries.jpg"],
+    },
+    {
+      id: "fries8",
+      name: "Cheesy Fingers (2Pc) & Loaded Fries",
+      price: 199,
+      type: "veg",
+      image: friesImageMap["Cheesy Fingers (2Pc) & Loaded Fries.jpg"],
+    },
+  ],
+},
   {
     category: "Sliced Sandwich",
     items: [
@@ -1161,23 +1186,139 @@ export const MENU_DATA = [
     ],
   },
 
-  {
-    category: "Combo",
-    items: [
-      { id: "combo1", name: "Veg Crispy Sub 4 Inch + Coke", price: 169, type: "veg" },
-      { id: "combo2", name: "Paneer Masala Sub 4 Inch + Coke", price: 219, type: "veg", popular: true },
-      { id: "combo3", name: "Chicken Crispy Sub 4 Inch + Coke", price: 199, type: "nonveg", popular: true },
-      { id: "combo4", name: "Chicken Masala Sub 4 Inch + Coke", price: 219, type: "nonveg", popular: true },
-    ],
-  },
-
  {
+  category: "Combo",
+  items: [
+    {
+      id: "combo1",
+      name: 'Veggie Classic Sub (4") + Cold Coffee',
+      price: 99,
+      type: "veg",
+      image: combo["image.jpg"],
+      popular: true,
+    },
+    {
+      id: "combo2",
+      name: 'Masala Veg Sub (4") + Cold Coffee',
+      price: 139,
+      type: "veg",
+      image: combo["image.jpg"],
+      popular: true,
+    },
+    {
+      id: "combo3",
+      name: "Dr. Doom Veg & Cheesy Wrap + Cold Coffee",
+      price: 119,
+      type: "veg",
+      image: combo["image.jpg"],
+      popular: true,
+    },
+    {
+      id: "combo4",
+      name: "Agent Aloo Masala Wrap + Cold Coffee",
+      price: 139,
+      type: "veg",
+      image: combo["image.jpg"],
+    },
+    {
+      id: "combo5",
+      name: "Aloo Masala Burger + Cold Coffee",
+      price: 139,
+      type: "veg",
+      image: combo["image.jpg"],
+    },
+    {
+      id: "combo6",
+      name: "Paneer Crackling Burger + Cold Coffee",
+      price: 219,
+      type: "veg",
+      image: combo["image.jpg"],
+      popular: true,
+    },
+    {
+      id: "combo7",
+      name: "Aloo Masala Toast + Cold Coffee",
+      price: 119,
+      type: "veg",
+      image: combo["image.jpg"],
+    },
+    // Price not clearly visible in poster, add only after confirmation
+    // {
+    //   id: "combo8",
+    //   name: "Simple Veg Sliced Sandwich + Cold Coffee",
+    //   price: 99,
+    //   type: "veg",
+    //   image: combo["image.jpg"],
+    // },
+  ],
+},
+{
   category: "Drinks",
   items: [
-    { id: "drink1", name: "Coke",   price: 39, type: "veg", drink: true, image: drinks["/src/assets/items/Drinks/ck.jpeg"] },
-    { id: "drink2", name: "Pepsi",  price: 39, type: "veg", drink: true, image: drinks["/src/assets/items/Drinks/ck.jpeg"] },
-    { id: "drink3", name: "Sprite", price: 39, type: "veg", drink: true, image: drinks["/src/assets/items/Drinks/ck.jpeg"] },
-    { id: "drink4", name: "Fanta",  price: 39, type: "veg", drink: true, image: drinks["/src/assets/items/Drinks/ck.jpeg"] },
+    {
+      id: "drink1",
+      name: "Virgin Mojito",
+      price: 59,
+      type: "veg",
+      drink: true,
+      image: drinks["image.png"],
+    },
+    {
+      id: "drink2",
+      name: "Blue Lagoon",
+      price: 69,
+      type: "veg",
+      drink: true,
+      image: drinks["image.png"],
+    },
+    {
+      id: "drink3",
+      name: "Green Apple Splash",
+      price: 69,
+      type: "veg",
+      drink: true,
+      image: drinks["image.png"],
+    },
+    {
+      id: "drink4",
+      name: "Strawberry Soda",
+      price: 79,
+      type: "veg",
+      drink: true,
+      image: drinks["image.png"],
+    },
+    {
+      id: "drink5",
+      name: "Mint Lemon Soda",
+      price: 49,
+      type: "veg",
+      drink: true,
+      image: drinks["image.png"],
+    },
+    {
+      id: "drink6",
+      name: "Peach Iced Tea",
+      price: 79,
+      type: "veg",
+      drink: true,
+      image: drinks["image.png"],
+    },
+    {
+      id: "drink7",
+      name: "Classic Cold Coffee",
+      price: 69,
+      type: "veg",
+      drink: true,
+      image: drinks["image.png"],
+    },
+    {
+      id: "drink8",
+      name: "Hazelnut Cold Coffee",
+      price: 79,
+      type: "veg",
+      drink: true,
+      image: drinks["image.png"],
+    },
   ],
 },
 
