@@ -21,7 +21,7 @@ export default function Cart() {
   const [locationPopupOpen, setLocationPopupOpen] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
 
-  const delivery = total > 299 ? 0 : 40;
+  const delivery = total > 299 ? 0 : 0;
   const tax = Math.round(total * 0.05);
   const grandTotal = total + delivery + tax;
 

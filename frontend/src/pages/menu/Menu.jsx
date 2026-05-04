@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { MENU_DATA } from "../../data/menu";
 import { useCart } from "../../context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,16 +7,6 @@ import { FiFilter, FiX } from "react-icons/fi";
 
 const DEFAULT_IMAGE =
   "https://images.pexels.com/photos/70497/pexels-photo-70497.jpeg";
-
-const parsePrice = (v) => {
-  if (v == null) return 0;
-  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
-  const n = Number(String(v).replace(/[^0-9.-]+/g, ""));
-  return Number.isFinite(n) ? n : 0;
-};
-
-const applyDiscount = (originalPrice) =>
-  Math.round(parsePrice(originalPrice) * 0.85);
 
 const SIZE_4 = "4 Inches";
 const SIZE_8 = "8 Inches";
@@ -33,6 +23,30 @@ const FRIES_LARGE = "Large";
 const BREAD_EXTRA = 20;
 
 const normalize = (v = "") => String(v).trim().toLowerCase();
+
+const parsePrice = (v) => {
+  if (v == null) return 0;
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+  const n = Number(String(v).replace(/[^0-9.-]+/g, ""));
+  return Number.isFinite(n) ? n : 0;
+};
+
+const applyDiscount = (originalPrice) =>
+  Math.round(parsePrice(originalPrice) * 0.85);
+
+const getBreadExtra = (breadType) => {
+  if (breadType === BREAD_MULTIGRAINS) return BREAD_EXTRA;
+  return 0;
+};
+
+const isNoDiscountSubmarine = (sectionCategory, itemName, size) => {
+  const name = normalize(itemName);
+  return (
+    normalize(sectionCategory) === "submarine sandwich" &&
+    size === SIZE_4 &&
+    (name.includes("veggie classic") || name.includes("masala veg sub"))
+  );
+};
 
 const dedupeMenuData = (data) => {
   const seen = new Set();
@@ -51,6 +65,95 @@ const dedupeMenuData = (data) => {
   });
 };
 
+const getItemMeta = (item, sectionCategory) => {
+  const normalizedCategory = normalize(sectionCategory);
+  const name = String(item?.name ?? "");
+
+  const isSubmarine = normalizedCategory === "submarine sandwich";
+  const isFries = normalizedCategory === "fries";
+  const isDrinks = normalizedCategory === "drinks";
+  const isSliced = normalizedCategory === "sliced sandwich";
+  const isFryoTower = /fryo tower/i.test(name);
+
+  const isSimpleVeg = /simple veg slice/i.test(name);
+  const isLoadedCheesy = /loaded cheesy/i.test(name);
+  const isRegularFries = /regular fries/i.test(name);
+
+  const hasMonster = item?.priceMonster != null;
+  const hasFourInchPrice = item?.priceMini != null || item?.priceSmall != null;
+
+  const inferred8Only =
+    !hasMonster &&
+    !hasFourInchPrice &&
+    item?.price != null &&
+    /8\s*inch/i.test(name);
+
+  const showSizeToggle = isSubmarine || hasMonster;
+  const showBreadOptions = isSubmarine || isSliced;
+  const showFriesOptions = isFries && isRegularFries;
+
+  return {
+    isSubmarine,
+    isFries,
+    isDrinks,
+    isSliced,
+    isFryoTower,
+    isSimpleVeg,
+    isLoadedCheesy,
+    isRegularFries,
+    hasMonster,
+    hasFourInchPrice,
+    inferred8Only,
+    showSizeToggle,
+    showBreadOptions,
+    showFriesOptions,
+  };
+};
+
+const getItemImage = (item, meta, size) => {
+  if (meta.isSubmarine) {
+    if (size === SIZE_8) return item?.imageMonster || item?.image || DEFAULT_IMAGE;
+    return item?.imageMini || item?.imageSmall || item?.image || DEFAULT_IMAGE;
+  }
+  return item?.image || DEFAULT_IMAGE;
+};
+
+const getBasePrice = ({ item, meta, size, friesSize, fryoVariant }) => {
+  if (meta.isSimpleVeg) return 39;
+  if (meta.isLoadedCheesy) return 89;
+
+  if (meta.showFriesOptions) {
+    if (friesSize === FRIES_SMALL) return 69;
+    if (friesSize === FRIES_MEDIUM) return 99;
+    return 129;
+  }
+
+  if (meta.isFryoTower) {
+    const found = (item?.variants || []).find((v) => v.label === fryoVariant);
+    return parsePrice(found?.price ?? item?.price ?? 99);
+  }
+
+  if (meta.isSubmarine) {
+    const four = parsePrice(item?.priceMini ?? item?.priceSmall ?? item?.price ?? 0);
+    const eight = parsePrice(item?.priceMonster ?? item?.price ?? four);
+    return size === SIZE_8 ? eight : four;
+  }
+
+  const effectiveSize = meta.inferred8Only ? SIZE_8 : size;
+  return effectiveSize === SIZE_8
+    ? parsePrice(item?.priceMonster ?? item?.price)
+    : parsePrice(item?.priceMini ?? item?.priceSmall ?? item?.price ?? 0);
+};
+
+const shouldApplyDiscount = ({ sectionCategory, item, meta, size }) => {
+  if (meta.isFries) return false;
+  if (meta.isDrinks) return false;
+  if (meta.isSimpleVeg) return false;
+  if (meta.isLoadedCheesy) return false;
+  if (isNoDiscountSubmarine(sectionCategory, item?.name, size)) return false;
+  return true;
+};
+
 export default function Menu() {
   const { addItem, cart, total } = useCart();
   const navigate = useNavigate();
@@ -61,7 +164,6 @@ export default function Menu() {
 
   const [search, setSearch] = useState(initialSearch);
   const [filter, setFilter] = useState("all");
-  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -71,27 +173,25 @@ export default function Menu() {
   const sectionRefs = useRef({});
 
   const safeMenuData = useMemo(() => dedupeMenuData(MENU_DATA), []);
-  const categories = useMemo(() => ["All", ...safeMenuData.map((s) => s.category)], [safeMenuData]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(t);
-  }, []);
+  const categories = useMemo(
+    () => ["All", ...safeMenuData.map((s) => s.category)],
+    [safeMenuData]
+  );
 
   const totalItems = useMemo(() => {
     if (!Array.isArray(cart)) return 0;
-    return cart.reduce((s, i) => s + (Number(i?.qty) || 1), 0);
+    return cart.reduce((sum, item) => sum + (Number(item?.qty) || 1), 0);
   }, [cart]);
 
   const qtyById = useMemo(() => {
-    const m = new Map();
-    (Array.isArray(cart) ? cart : []).forEach((it) => {
-      const id = String(it?.id ?? "");
-      const q = Number(it?.qty) || 1;
+    const map = new Map();
+    (Array.isArray(cart) ? cart : []).forEach((item) => {
+      const id = String(item?.id ?? "");
+      const qty = Number(item?.qty) || 1;
       if (!id) return;
-      m.set(id, (m.get(id) || 0) + q);
+      map.set(id, (map.get(id) || 0) + qty);
     });
-    return m;
+    return map;
   }, [cart]);
 
   const resetAll = () => {
@@ -122,7 +222,7 @@ export default function Menu() {
 
     const el = sectionRefs.current[catName];
     if (el) {
-      const headerOffset = 150;
+      const headerOffset = 140;
       const elementPosition = el.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
       window.scrollTo({ top: offsetPosition, behavior: "smooth" });
@@ -131,7 +231,7 @@ export default function Menu() {
 
   useEffect(() => {
     if (!initialCategory || initialCategory === "All") return;
-    const t = setTimeout(() => scrollToCategory(initialCategory), 350);
+    const t = setTimeout(() => scrollToCategory(initialCategory), 120);
     return () => clearTimeout(t);
   }, [initialCategory]);
 
@@ -143,12 +243,11 @@ export default function Menu() {
         activeCategory === "All" || section.category === activeCategory;
 
       const items = (section.items || []).filter((item) => {
-        const matchSearch = !q || (item.name || "").toLowerCase().includes(q);
-
+        const matchSearch = !q || (item?.name || "").toLowerCase().includes(q);
         const matchFilter =
           filter === "all" ||
-          (filter === "veg" && item.type === "veg") ||
-          (filter === "nonveg" && item.type === "nonveg");
+          (filter === "veg" && item?.type === "veg") ||
+          (filter === "nonveg" && item?.type === "nonveg");
 
         return categoryAllowed && matchSearch && matchFilter;
       });
@@ -167,7 +266,7 @@ export default function Menu() {
 
   const closeCustomizeModal = () => {
     setModalOpen(false);
-    setTimeout(() => setSelectedItem(null), 200);
+    setTimeout(() => setSelectedItem(null), 120);
   };
 
   const handleAddToCart = (payload) => {
@@ -178,17 +277,17 @@ export default function Menu() {
   return (
     <div
       className="min-h-screen bg-gradient-to-br from-[#fbd536] to-[#f9c130]"
-      style={{ paddingBottom: "calc(var(--bottom-nav-h, 64px) + 180px)" }}
+      style={{ paddingBottom: "calc(var(--bottom-nav-h, 64px) + 170px)" }}
     >
       <motion.div
-        initial={{ y: -30, opacity: 0 }}
+        initial={{ y: -14, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.22 }}
         className="bg-white/95 backdrop-blur-xl border-b sticky top-0 z-30 shadow-lg"
       >
-        <div className="max-w-7xl mx-auto px-4 py-4 space-y-3">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <h1 className="text-xl md:text-2xl font-extrabold text-gray-900">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold text-gray-900 leading-tight">
               What's A Sandwich – Greater Noida
             </h1>
 
@@ -202,12 +301,13 @@ export default function Menu() {
           </div>
 
           <motion.input
-            initial={{ scale: 0.98 }}
+            initial={{ scale: 0.995 }}
             animate={{ scale: 1 }}
+            transition={{ duration: 0.18 }}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search food"
-            className="w-full px-4 py-2 rounded-xl border-2 focus:ring-2 focus:ring-red-500 outline-none shadow-sm"
+            className="w-full px-4 py-3 rounded-xl border-2 text-sm sm:text-base focus:ring-2 focus:ring-red-500 outline-none shadow-sm"
           />
 
           <div className="flex gap-2 items-center flex-wrap">
@@ -220,7 +320,7 @@ export default function Menu() {
             <button
               type="button"
               onClick={() => setShowFilters((v) => !v)}
-              className="ml-auto px-4 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-xl flex items-center gap-2"
+              className="ml-auto px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold whitespace-nowrap transition bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-xl flex items-center gap-2"
             >
               <FiFilter />
               Categories
@@ -229,7 +329,7 @@ export default function Menu() {
             <button
               type="button"
               onClick={resetAll}
-              className="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-white text-gray-800 border-2 border-gray-200 hover:bg-gray-50 shadow-md flex items-center gap-2"
+              className="px-3 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-white text-gray-800 border-2 border-gray-200 hover:bg-gray-50 shadow-md flex items-center gap-2"
             >
               <FiX />
               Clear
@@ -244,14 +344,19 @@ export default function Menu() {
                   onRemove={clearCategory}
                 />
               )}
+
               {filter !== "all" && (
                 <AppliedChip
                   label={`Type: ${filter.toUpperCase()}`}
                   onRemove={clearType}
                 />
               )}
+
               {Boolean(search.trim()) && (
-                <AppliedChip label={`Search: ${search.trim()}`} onRemove={clearSearch} />
+                <AppliedChip
+                  label={`Search: ${search.trim()}`}
+                  onRemove={clearSearch}
+                />
               )}
 
               <button
@@ -270,7 +375,7 @@ export default function Menu() {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 pt-2">
@@ -290,46 +395,41 @@ export default function Menu() {
         </div>
       </motion.div>
 
-      <div className="max-w-7xl mx-auto px-3 py-6 space-y-12">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-5 sm:py-6 space-y-10 sm:space-y-12">
         {filteredMenu.map((section) => {
           if (!section.items.length) return null;
 
           return (
-            <div
+            <section
               key={section.category}
               ref={(el) => {
                 sectionRefs.current[section.category] = el;
               }}
             >
-              <h2 className="text-lg md:text-xl font-extrabold text-gray-900 mb-4 flex items-center gap-2">
-                <span className="w-2 h-8 bg-red-600 rounded-full" />
+              <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-7 sm:h-8 bg-red-600 rounded-sm" />
                 {section.category}
               </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {(loading ? [...Array(6)] : section.items).map((item, idx) =>
-                  loading ? (
-                    <SkeletonCard key={idx} />
-                  ) : (
-                    <motion.div
-                      key={`${item.id ?? item.name ?? idx}-${idx}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, amount: 0.2 }}
-                      transition={{ delay: idx * 0.05 }}
-                      whileHover={{ y: -6, scale: 1.02 }}
-                    >
-                      <FoodCard
-                        item={item}
-                        sectionCategory={section.category}
-                        qtyById={qtyById}
-                        openCustomizeModal={openCustomizeModal}
-                      />
-                    </motion.div>
-                  )
-                )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {section.items.map((item, idx) => (
+                  <motion.div
+                    key={`${item?.id ?? item?.name ?? idx}-${idx}`}
+                    initial={{ opacity: 0, y: 14 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.12 }}
+                    transition={{ delay: idx * 0.025, duration: 0.2 }}
+                  >
+                    <FoodCard
+                      item={item}
+                      sectionCategory={section.category}
+                      qtyById={qtyById}
+                      openCustomizeModal={openCustomizeModal}
+                    />
+                  </motion.div>
+                ))}
               </div>
-            </div>
+            </section>
           );
         })}
       </div>
@@ -350,18 +450,17 @@ export default function Menu() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="fixed left-4 right-4 md:hidden z-[55]"
+            transition={{ type: "spring", damping: 22, stiffness: 310 }}
+            className="fixed left-3 right-3 sm:left-4 sm:right-4 md:hidden z-[55]"
             style={{
               bottom:
-                "calc(var(--bottom-nav-h, 64px) + env(safe-area-inset-bottom, 0px) + 12px)",
+                "calc(var(--bottom-nav-h, 64px) + env(safe-area-inset-bottom, 0px) + 10px)",
             }}
           >
             <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileTap={{ scale: 0.985 }}
               onClick={() => navigate("/cart")}
-              className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-4 flex justify-between items-center shadow-2xl border-2 border-white cursor-pointer"
+              className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-3.5 sm:p-4 flex justify-between items-center shadow-2xl border-2 border-white cursor-pointer"
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
@@ -369,31 +468,31 @@ export default function Menu() {
               }}
               aria-label="Open cart"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <motion.div
-                  animate={{ scale: [1, 1.2, 1] }}
+                  animate={{ scale: [1, 1.1, 1] }}
                   transition={{ repeat: Infinity, duration: 2 }}
-                  className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-red-600 font-extrabold text-lg shadow-lg"
+                  className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white flex items-center justify-center text-red-600 font-extrabold text-lg shadow-lg flex-shrink-0"
                 >
                   {totalItems}
                 </motion.div>
 
-                <div>
+                <div className="min-w-0">
                   <p className="text-white/90 text-xs font-bold">
                     {totalItems} {totalItems === 1 ? "item" : "items"}
                   </p>
-                  <p className="text-white font-extrabold text-xl">₹{total}</p>
+                  <p className="text-white font-extrabold text-lg sm:text-xl truncate">
+                    ₹{total}
+                  </p>
                 </div>
               </div>
 
-              <motion.button
+              <button
                 type="button"
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 bg-white text-red-600 font-extrabold rounded-xl shadow-lg"
+                className="px-4 sm:px-6 py-2.5 sm:py-3 bg-white text-red-600 font-extrabold rounded-xl shadow-lg text-sm sm:text-base flex-shrink-0"
               >
                 View Cart
-              </motion.button>
+              </button>
             </motion.div>
           </motion.div>
         )}
@@ -402,89 +501,47 @@ export default function Menu() {
   );
 }
 
-function FoodCard({ item, sectionCategory, qtyById, openCustomizeModal }) {
-  const isSubmarine = sectionCategory === "Submarine Sandwich";
-  const isFries = sectionCategory === "Fries";
-  const isSliced = sectionCategory === "Sliced Sandwich";
-  const isFryoTower = /fryo tower/i.test(String(item?.name ?? ""));
+const FoodCard = memo(function FoodCard({
+  item,
+  sectionCategory,
+  qtyById,
+  openCustomizeModal,
+}) {
+  const meta = useMemo(() => getItemMeta(item, sectionCategory), [item, sectionCategory]);
 
   const [size, setSize] = useState(SIZE_4);
   const [friesSize, setFriesSize] = useState(FRIES_SMALL);
   const [breadType, setBreadType] = useState(BREAD_REGULAR);
 
-  const name = String(item?.name ?? "");
-  const isSimpleVeg = /simple veg slice/i.test(name);
-  const isLoadedCheesy = /loaded cheesy/i.test(name);
-  const isRegularFries = /regular fries/i.test(name);
+  const cardImg = useMemo(() => getItemImage(item, meta, size), [item, meta, size]);
 
-  const hasMonster = item?.priceMonster != null;
-  const hasFourInchPrice = item?.priceMini != null || item?.priceSmall != null;
+  const baseOriginalPrice = useMemo(
+    () =>
+      getBasePrice({
+        item,
+        meta,
+        size,
+        friesSize,
+        fryoVariant: item?.variants?.[0]?.label ?? "Classic Fryo Tower",
+      }),
+    [item, meta, size, friesSize]
+  );
 
-  const inferred8Only =
-    !hasMonster &&
-    !hasFourInchPrice &&
-    item?.price != null &&
-    /8\s*inch/i.test(String(item?.name ?? ""));
+  const discountAllowed = useMemo(
+    () => shouldApplyDiscount({ sectionCategory, item, meta, size }),
+    [sectionCategory, item, meta, size]
+  );
 
-  const showSizeToggle = isSubmarine || hasMonster;
-  const showBreadOptions = isSubmarine || isSliced;
-  const showFriesOptions = isFries && isRegularFries;
-
-  const getImageBySize = () => {
-    if (isSubmarine) {
-      if (size === SIZE_8) return item?.imageMonster || item?.image || DEFAULT_IMAGE;
-      return item?.imageMini || item?.imageSmall || item?.image || DEFAULT_IMAGE;
-    }
-    return item?.image || DEFAULT_IMAGE;
-  };
-
-  const getBasePrice = () => {
-    if (isSimpleVeg) return 39;
-    if (isLoadedCheesy) return 89;
-
-    if (showFriesOptions) {
-      if (friesSize === FRIES_SMALL) return 69;
-      if (friesSize === FRIES_MEDIUM) return 99;
-      return 129;
-    }
-
-    if (isFryoTower) {
-      return parsePrice(item?.price ?? 99);
-    }
-
-    if (isSubmarine) {
-      const four = parsePrice(item?.priceMini ?? item?.priceSmall ?? item?.price ?? 0);
-      const eight = parsePrice(item?.priceMonster ?? item?.price ?? four);
-      return size === SIZE_8 ? eight : four;
-    }
-
-    const effectiveSize = inferred8Only ? SIZE_8 : size;
-    return effectiveSize === SIZE_8
-      ? parsePrice(item?.priceMonster ?? item?.price)
-      : parsePrice(item?.priceMini ?? item?.priceSmall ?? item?.price ?? 0);
-  };
-
-  const shouldApplyDiscount = () => {
-    if (isFries) return false;
-    if (isSimpleVeg) return false;
-    if (isLoadedCheesy) return false;
-    if (isSubmarine && size === SIZE_4) return false;
-    if (!isSubmarine && size === SIZE_4 && !inferred8Only && hasFourInchPrice) return false;
-    return true;
-  };
-
-  const breadExtra = showBreadOptions && breadType !== BREAD_REGULAR ? BREAD_EXTRA : 0;
-  const baseOriginalPrice = getBasePrice();
-  const discountedBasePrice = shouldApplyDiscount()
+  const breadExtra = meta.showBreadOptions ? getBreadExtra(breadType) : 0;
+  const discountedBasePrice = discountAllowed
     ? applyDiscount(baseOriginalPrice)
     : baseOriginalPrice;
   const finalPrice = discountedBasePrice + breadExtra;
-  const cardImg = getImageBySize();
 
   const variantParts = [];
-  if (showFriesOptions) variantParts.push(friesSize);
-  if (showSizeToggle) variantParts.push(inferred8Only ? SIZE_8 : size);
-  if (showBreadOptions) variantParts.push(breadType);
+  if (meta.showFriesOptions) variantParts.push(friesSize);
+  if (meta.showSizeToggle) variantParts.push(meta.inferred8Only ? SIZE_8 : size);
+  if (meta.showBreadOptions) variantParts.push(breadType);
 
   const baseId = String(item?.id ?? item?.name ?? "item");
   const cartId = `${baseId}-${variantParts.join("-").replace(/\s+/g, "_") || "default"}`;
@@ -503,28 +560,15 @@ function FoodCard({ item, sectionCategory, qtyById, openCustomizeModal }) {
         extraSauce: false,
       },
       cardImg,
-      hasMeta: {
-        isSubmarine,
-        isFries,
-        isSliced,
-        isSimpleVeg,
-        isLoadedCheesy,
-        isRegularFries,
-        isFryoTower,
-        showSizeToggle,
-        showBreadOptions,
-        showFriesOptions,
-        inferred8Only,
-        hasFourInchPrice,
-      },
+      hasMeta: meta,
     });
   };
 
   return (
-    <div className="bg-white border-2 rounded-2xl transition-all p-3 flex gap-3 hover:shadow-2xl relative group">
-      {shouldApplyDiscount() && (
+    <div className="bg-white border-2 rounded-2xl transition-all p-3 flex gap-3 hover:shadow-2xl relative group min-h-[128px]">
+      {discountAllowed && (
         <motion.div
-          animate={{ scale: [1, 1.1, 1] }}
+          animate={{ scale: [1, 1.04, 1] }}
           transition={{ repeat: Infinity, duration: 2 }}
           className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-extrabold px-2 py-1 rounded-lg shadow-lg z-10"
         >
@@ -536,7 +580,8 @@ function FoodCard({ item, sectionCategory, qtyById, openCustomizeModal }) {
         src={cardImg}
         alt={item?.name ?? "Food"}
         loading="lazy"
-        className="w-24 h-24 object-cover rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform"
+        decoding="async"
+        className="w-24 h-24 object-cover rounded-xl flex-shrink-0 group-hover:scale-105 transition-transform"
         onError={(e) => {
           e.currentTarget.src = DEFAULT_IMAGE;
         }}
@@ -544,12 +589,12 @@ function FoodCard({ item, sectionCategory, qtyById, openCustomizeModal }) {
 
       <div className="flex-1 flex flex-col justify-between min-w-0">
         <div>
-          <h3 className="font-extrabold text-sm md:text-base truncate text-gray-900">
+          <h3 className="font-extrabold text-sm sm:text-base text-gray-900 leading-tight line-clamp-2 pr-10">
             {item?.name}
           </h3>
-          <p className="text-xs text-gray-600">Fresh • Hygienic • Tasty</p>
+          <p className="text-xs text-gray-600 mt-1">Fresh • Hygienic • Tasty</p>
 
-          {showSizeToggle && !showFriesOptions && !isFryoTower && (
+          {meta.showSizeToggle && !meta.showFriesOptions && !meta.isFryoTower && (
             <div className="mt-2 flex gap-1 flex-wrap">
               <SizeBtn active={size === SIZE_4} onClick={() => setSize(SIZE_4)}>
                 4 Inches
@@ -560,7 +605,7 @@ function FoodCard({ item, sectionCategory, qtyById, openCustomizeModal }) {
             </div>
           )}
 
-          {showFriesOptions && (
+          {meta.showFriesOptions && (
             <div className="mt-2 flex gap-1 flex-wrap">
               <SizeBtn active={friesSize === FRIES_SMALL} onClick={() => setFriesSize(FRIES_SMALL)}>
                 Small
@@ -574,7 +619,7 @@ function FoodCard({ item, sectionCategory, qtyById, openCustomizeModal }) {
             </div>
           )}
 
-          {isFryoTower && (
+          {meta.isFryoTower && (
             <div className="mt-2">
               <span className="inline-block px-2 py-1 rounded-md bg-orange-50 text-orange-700 text-[10px] font-extrabold">
                 3 Variants Available
@@ -583,22 +628,24 @@ function FoodCard({ item, sectionCategory, qtyById, openCustomizeModal }) {
           )}
         </div>
 
-        <div className="flex justify-between items-center mt-2">
-          <div>
+        <div className="flex justify-between items-center mt-3 gap-2">
+          <div className="min-w-0">
             {finalPrice !== baseOriginalPrice + breadExtra && (
               <span className="text-xs text-gray-500 line-through mr-2">
                 ₹{baseOriginalPrice + breadExtra}
               </span>
             )}
-            <span className="font-extrabold text-red-600">₹{finalPrice}</span>
+            <span className="font-extrabold text-red-600 text-sm sm:text-base">
+              ₹{finalPrice}
+            </span>
           </div>
 
           <motion.button
             type="button"
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.94 }}
+            whileHover={{ scale: 1.04 }}
             onClick={handleOpen}
-            className="px-3 py-1 text-xs bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg font-extrabold shadow-lg"
+            className="px-3 py-2 text-xs bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg font-extrabold shadow-lg flex-shrink-0 min-h-[40px]"
           >
             {currentQty > 0 ? `Add (${currentQty})` : "Add"}
           </motion.button>
@@ -606,7 +653,7 @@ function FoodCard({ item, sectionCategory, qtyById, openCustomizeModal }) {
       </div>
     </div>
   );
-}
+});
 
 function CustomizeModal({ itemData, onClose, onAdd }) {
   const { item, sectionCategory, defaults, hasMeta } = itemData;
@@ -622,20 +669,6 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
   );
   const [extraSauce, setExtraSauce] = useState(defaults?.extraSauce ?? false);
 
-  const {
-    isSubmarine,
-    isSliced,
-    isSimpleVeg,
-    isLoadedCheesy,
-    isRegularFries,
-    isFryoTower,
-    showSizeToggle,
-    showBreadOptions,
-    showFriesOptions,
-    inferred8Only,
-    hasFourInchPrice,
-  } = hasMeta;
-
   useEffect(() => {
     const oldOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -644,96 +677,72 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
     };
   }, []);
 
-  const getImageBySize = () => {
-    if (isSubmarine) {
-      if (size === SIZE_8) return item?.imageMonster || item?.image || DEFAULT_IMAGE;
-      return item?.imageMini || item?.imageSmall || item?.image || DEFAULT_IMAGE;
-    }
-    return item?.image || DEFAULT_IMAGE;
-  };
+  const cardImg = getItemImage(item, hasMeta, size);
+  const basePrice = getBasePrice({
+    item,
+    meta: hasMeta,
+    size,
+    friesSize,
+    fryoVariant,
+  });
 
-  const getBasePrice = () => {
-    if (isSimpleVeg) return 39;
-    if (isLoadedCheesy) return 89;
+  const discountAllowed = shouldApplyDiscount({
+    sectionCategory,
+    item,
+    meta: hasMeta,
+    size,
+  });
 
-    if (showFriesOptions) {
-      if (friesSize === FRIES_SMALL) return 69;
-      if (friesSize === FRIES_MEDIUM) return 99;
-      return 129;
-    }
+  const breadExtra = hasMeta.showBreadOptions ? getBreadExtra(breadType) : 0;
+  const sauceExtra =
+    hasMeta.isFryoTower && extraSauce ? parsePrice(item?.extraSaucePrice ?? 20) : 0;
 
-    if (isFryoTower) {
-      const found = (item?.variants || []).find((v) => v.label === fryoVariant);
-      return parsePrice(found?.price ?? item?.price ?? 99);
-    }
-
-    if (isSubmarine) {
-      const four = parsePrice(item?.priceMini ?? item?.priceSmall ?? item?.price ?? 0);
-      const eight = parsePrice(item?.priceMonster ?? item?.price ?? four);
-      return size === SIZE_8 ? eight : four;
-    }
-
-    const effectiveSize = inferred8Only ? SIZE_8 : size;
-    return effectiveSize === SIZE_8
-      ? parsePrice(item?.priceMonster ?? item?.price)
-      : parsePrice(item?.priceMini ?? item?.priceSmall ?? item?.price ?? 0);
-  };
-
-  const shouldApplyDiscount = () => {
-    if (normalize(sectionCategory) === "fries") return false;
-    if (isSimpleVeg) return false;
-    if (isLoadedCheesy) return false;
-    if (isSubmarine && size === SIZE_4) return false;
-    if (!isSubmarine && size === SIZE_4 && !inferred8Only && hasFourInchPrice) return false;
-    return true;
-  };
-
-  const breadExtra = showBreadOptions && breadType !== BREAD_REGULAR ? BREAD_EXTRA : 0;
-  const sauceExtra = isFryoTower && extraSauce ? parsePrice(item?.extraSaucePrice ?? 20) : 0;
-
-  const basePrice = getBasePrice();
-  const finalBasePrice = shouldApplyDiscount() ? applyDiscount(basePrice) : basePrice;
+  const finalBasePrice = discountAllowed ? applyDiscount(basePrice) : basePrice;
   const finalPrice = finalBasePrice + breadExtra + sauceExtra;
-  const cardImg = getImageBySize();
 
   const variantParts = [];
-  if (showFriesOptions) variantParts.push(friesSize);
-  if (isFryoTower) {
+  if (hasMeta.showFriesOptions) variantParts.push(friesSize);
+  if (hasMeta.isFryoTower) {
     variantParts.push(fryoVariant);
     variantParts.push(fryoSauce);
     if (extraSauce) variantParts.push("ExtraSauce");
   }
-  if (showSizeToggle && !isFryoTower) variantParts.push(inferred8Only ? SIZE_8 : size);
-  if (showBreadOptions) variantParts.push(breadType);
+  if (hasMeta.showSizeToggle && !hasMeta.isFryoTower) {
+    variantParts.push(hasMeta.inferred8Only ? SIZE_8 : size);
+  }
+  if (hasMeta.showBreadOptions) variantParts.push(breadType);
 
   const baseId = String(item?.id ?? item?.name ?? "item");
   const cartId = `${baseId}-${variantParts.join("-").replace(/\s+/g, "_") || "default"}`;
 
   return (
     <motion.div
-      className="fixed inset-0 z-[999] bg-black/60 flex items-end sm:items-center justify-center p-3 sm:p-4"
+      className="fixed inset-0 z-[999] bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
-        initial={{ y: 40, opacity: 0, scale: 0.98 }}
+        initial={{ y: 30, opacity: 0, scale: 0.985 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
-        exit={{ y: 40, opacity: 0, scale: 0.98 }}
-        transition={{ duration: 0.22 }}
+        exit={{ y: 30, opacity: 0, scale: 0.985 }}
+        transition={{ duration: 0.18 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-5 max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-4 sm:p-5 max-h-[92vh] overflow-y-auto"
       >
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-extrabold text-gray-900">{item?.name}</h3>
+          <div className="min-w-0">
+            <h3 className="text-base sm:text-lg font-extrabold text-gray-900 leading-tight">
+              {item?.name}
+            </h3>
             <p className="text-sm text-gray-500">Customize your order</p>
           </div>
+
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-gray-100 text-gray-700 grid place-items-center"
+            className="w-9 h-9 rounded-full bg-gray-100 text-gray-700 grid place-items-center flex-shrink-0"
           >
             <FiX />
           </button>
@@ -742,13 +751,15 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
         <img
           src={cardImg}
           alt={item?.name ?? "Food"}
-          className="w-full h-44 object-cover rounded-2xl mt-4"
+          loading="lazy"
+          decoding="async"
+          className="w-full h-40 sm:h-44 object-cover rounded-2xl mt-4"
           onError={(e) => {
             e.currentTarget.src = DEFAULT_IMAGE;
           }}
         />
 
-        {showFriesOptions && (
+        {hasMeta.showFriesOptions && (
           <div className="mt-5">
             <p className="text-sm font-extrabold text-gray-900 mb-2">Choose Fries Size</p>
             <div className="flex gap-2 flex-wrap">
@@ -765,7 +776,7 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
           </div>
         )}
 
-        {isFryoTower && (
+        {hasMeta.isFryoTower && (
           <>
             <div className="mt-5">
               <p className="text-sm font-extrabold text-gray-900 mb-2">Choose Variant</p>
@@ -779,7 +790,7 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
                         : "border-gray-200 bg-white"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <input
                         type="radio"
                         name={`fryo-variant-${baseId}`}
@@ -787,9 +798,13 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
                         onChange={() => setFryoVariant(variant.label)}
                         className="accent-red-600"
                       />
-                      <span className="font-bold text-sm text-gray-800">{variant.label}</span>
+                      <span className="font-bold text-sm text-gray-800">
+                        {variant.label}
+                      </span>
                     </div>
-                    <span className="text-sm font-extrabold text-red-600">₹{variant.price}</span>
+                    <span className="text-sm font-extrabold text-red-600">
+                      ₹{variant.price}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -803,7 +818,7 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
                     key={sauce}
                     type="button"
                     onClick={() => setFryoSauce(sauce)}
-                    className={`px-3 py-2 rounded-xl text-xs font-extrabold border ${
+                    className={`px-3 py-2.5 rounded-xl text-xs font-extrabold border min-h-[42px] ${
                       fryoSauce === sauce
                         ? "bg-red-600 text-white border-red-600"
                         : "bg-white text-gray-700 border-gray-300"
@@ -816,12 +831,12 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
             </div>
 
             <div className="mt-4">
-              <label className="flex items-center justify-between border rounded-2xl px-4 py-3 cursor-pointer">
-                <div>
+              <label className="flex items-center justify-between border rounded-2xl px-4 py-3 cursor-pointer gap-3">
+                <div className="min-w-0">
                   <p className="font-bold text-sm text-gray-800">Extra Sauce</p>
                   <p className="text-xs text-gray-500">Add one more sauce</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-shrink-0">
                   <span className="text-sm font-extrabold text-red-600">
                     +₹{item?.extraSaucePrice ?? 20}
                   </span>
@@ -837,7 +852,7 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
           </>
         )}
 
-        {showSizeToggle && !showFriesOptions && !isFryoTower && (
+        {hasMeta.showSizeToggle && !hasMeta.showFriesOptions && !hasMeta.isFryoTower && (
           <div className="mt-5">
             <p className="text-sm font-extrabold text-gray-900 mb-2">Choose Size</p>
             <div className="flex gap-2 flex-wrap">
@@ -851,15 +866,16 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
           </div>
         )}
 
-        {showBreadOptions && (
+        {hasMeta.showBreadOptions && (
           <div className="mt-5">
             <p className="text-sm font-extrabold text-gray-900 mb-2">Choose Bread Type</p>
             <div className="space-y-2">
-              {(isSubmarine
+              {(hasMeta.isSubmarine
                 ? [BREAD_REGULAR, BREAD_ORGANIC, BREAD_MULTIGRAINS]
                 : [BREAD_REGULAR, BREAD_BROWN]
               ).map((bread) => {
-                const extra = bread === BREAD_REGULAR ? 0 : BREAD_EXTRA;
+                const extra = getBreadExtra(bread);
+
                 return (
                   <label
                     key={bread}
@@ -869,7 +885,7 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
                         : "border-gray-200 bg-white"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <input
                         type="radio"
                         name={`bread-${baseId}`}
@@ -895,14 +911,14 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
             <span className="font-bold text-gray-900">₹{finalBasePrice}</span>
           </div>
 
-          {showBreadOptions && breadExtra > 0 && (
+          {hasMeta.showBreadOptions && breadExtra > 0 && (
             <div className="flex justify-between text-sm mb-2">
               <span className="font-semibold text-gray-600">Bread Extra</span>
               <span className="font-bold text-gray-900">+₹{breadExtra}</span>
             </div>
           )}
 
-          {isFryoTower && extraSauce && (
+          {hasMeta.isFryoTower && extraSauce && (
             <div className="flex justify-between text-sm mb-2">
               <span className="font-semibold text-gray-600">Extra Sauce</span>
               <span className="font-bold text-gray-900">+₹{sauceExtra}</span>
@@ -920,16 +936,20 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
           onClick={() =>
             onAdd({
               id: cartId,
-              name: isFryoTower ? `${item?.name} - ${fryoVariant}` : item?.name,
+              name: hasMeta.isFryoTower ? `${item?.name} - ${fryoVariant}` : item?.name,
               price: finalPrice,
               image: cardImg,
-              size: showFriesOptions ? friesSize : inferred8Only ? SIZE_8 : size,
-              bread: showBreadOptions ? breadType : undefined,
-              sauce: isFryoTower ? fryoSauce : undefined,
-              extraSauce: isFryoTower ? extraSauce : undefined,
+              size: hasMeta.showFriesOptions
+                ? friesSize
+                : hasMeta.inferred8Only
+                ? SIZE_8
+                : size,
+              bread: hasMeta.showBreadOptions ? breadType : undefined,
+              sauce: hasMeta.isFryoTower ? fryoSauce : undefined,
+              extraSauce: hasMeta.isFryoTower ? extraSauce : undefined,
             })
           }
-          className="mt-5 w-full py-3 rounded-2xl bg-gradient-to-r from-red-600 to-red-700 text-white font-extrabold shadow-lg"
+          className="mt-5 w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-red-700 text-white font-extrabold shadow-lg min-h-[48px]"
         >
           Add to Cart • ₹{finalPrice}
         </button>
@@ -942,10 +962,10 @@ function FilterBtn({ active, children, onClick }) {
   return (
     <motion.button
       type="button"
-      whileTap={{ scale: 0.95 }}
-      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.96 }}
+      whileHover={{ scale: 1.03 }}
       onClick={onClick}
-      className={`px-4 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all shadow-md ${
+      className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold whitespace-nowrap transition-all shadow-md min-h-[40px] ${
         active
           ? "bg-red-600 text-white shadow-xl"
           : "bg-white text-gray-800 hover:bg-gray-100"
@@ -961,11 +981,11 @@ function AppliedChip({ label, onRemove }) {
     <button
       type="button"
       onClick={onRemove}
-      className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border-2 border-gray-200 shadow-sm hover:shadow-md hover:bg-gray-50 transition text-xs font-extrabold text-gray-800 max-w-full"
+      className="group inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white border-2 border-gray-200 shadow-sm hover:shadow-md hover:bg-gray-50 transition text-xs font-extrabold text-gray-800 max-w-full"
       title="Remove filter"
     >
-      <span className="truncate max-w-[220px]">{label}</span>
-      <span className="grid place-items-center w-5 h-5 rounded-full bg-red-50 text-red-700 group-hover:bg-red-100 transition">
+      <span className="truncate max-w-[200px] sm:max-w-[240px]">{label}</span>
+      <span className="grid place-items-center w-5 h-5 rounded-full bg-red-50 text-red-700 group-hover:bg-red-100 transition flex-shrink-0">
         <FiX />
       </span>
     </button>
@@ -976,9 +996,9 @@ function SizeBtn({ active, children, onClick }) {
   return (
     <motion.button
       type="button"
-      whileTap={{ scale: 0.9 }}
+      whileTap={{ scale: 0.94 }}
       onClick={onClick}
-      className={`px-2 py-1 rounded-md text-[10px] font-extrabold border transition ${
+      className={`px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-extrabold border transition min-h-[34px] ${
         active
           ? "bg-red-600 text-white border-red-600"
           : "bg-white text-gray-700 border-gray-300"
@@ -986,18 +1006,5 @@ function SizeBtn({ active, children, onClick }) {
     >
       {children}
     </motion.button>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div className="bg-white border-2 rounded-2xl p-3 animate-pulse flex gap-3">
-      <div className="w-24 h-24 bg-gray-200 rounded-xl flex-shrink-0" />
-      <div className="flex-1 space-y-3">
-        <div className="h-4 bg-gray-200 rounded w-3/4" />
-        <div className="h-3 bg-gray-200 rounded w-1/2" />
-        <div className="h-6 bg-gray-200 rounded w-1/3" />
-      </div>
-    </div>
   );
 }

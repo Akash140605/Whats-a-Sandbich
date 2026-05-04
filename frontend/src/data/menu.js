@@ -1152,39 +1152,39 @@ export const MENU_DATA = [
     ],
   },
 
-  {
-    category: "Cheesy Panini & Wraps",
-    items: [
-      {
-        id: "panwrap1",
-        name: "Chicken Masala Panini",
-        price: 199,
-        type: "nonveg",
-        image: paniniWrapsImageMap["Chicken Masala Panini.jpg"],
-      },
-      {
-        id: "panwrap2",
-        name: "Chicken Masala Wrap",
-        price: 199,
-        type: "nonveg",
-        image: paniniWrapsImageMap["Chicken Masala Wrap.jpg"],
-      },
-      {
-        id: "panwrap3",
-        name: "Paneer Cheesy Masala Panini",
-        price: 199,
-        type: "veg",
-        image: paniniWrapsImageMap["Paneer Cheesy Masala Panini.jpg"],
-      },
-      {
-        id: "panwrap4",
-        name: "Paneer Masala Wrap",
-        price: 199,
-        type: "veg",
-        image: paniniWrapsImageMap["Paneer Masala Wrap.jpg"],
-      },
-    ],
-  },
+  // {
+  //   category: "Cheesy Panini & Wraps",
+  //   items: [
+  //     {
+  //       id: "panwrap1",
+  //       name: "Chicken Masala Panini",
+  //       price: 199,
+  //       type: "nonveg",
+  //       image: paniniWrapsImageMap["Chicken Masala Panini.jpg"],
+  //     },
+  //     {
+  //       id: "panwrap2",
+  //       name: "Chicken Masala Wrap",
+  //       price: 199,
+  //       type: "nonveg",
+  //       image: paniniWrapsImageMap["Chicken Masala Wrap.jpg"],
+  //     },
+  //     {
+  //       id: "panwrap3",
+  //       name: "Paneer Cheesy Masala Panini",
+  //       price: 199,
+  //       type: "veg",
+  //       image: paniniWrapsImageMap["Paneer Cheesy Masala Panini.jpg"],
+  //     },
+  //     {
+  //       id: "panwrap4",
+  //       name: "Paneer Masala Wrap",
+  //       price: 199,
+  //       type: "veg",
+  //       image: paniniWrapsImageMap["Paneer Masala Wrap.jpg"],
+  //     },
+  //   ],
+  // },
 
  {
   category: "Combo",
