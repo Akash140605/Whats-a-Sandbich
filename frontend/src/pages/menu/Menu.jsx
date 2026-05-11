@@ -91,6 +91,7 @@ const getItemMeta = (item, sectionCategory) => {
   const showSizeToggle = isSubmarine || hasMonster;
   const showBreadOptions = isSubmarine || isSliced;
   const showFriesOptions = isFries && isRegularFries;
+  const showLoadedCheesySauceOptions = isLoadedCheesy;
 
   return {
     isSubmarine,
@@ -107,6 +108,7 @@ const getItemMeta = (item, sectionCategory) => {
     showSizeToggle,
     showBreadOptions,
     showFriesOptions,
+    showLoadedCheesySauceOptions,
   };
 };
 
@@ -557,6 +559,7 @@ const FoodCard = memo(function FoodCard({
         breadType,
         fryoVariant: item?.variants?.[0]?.label ?? "Classic Fryo Tower",
         fryoSauce: item?.sauces?.[0] ?? "White Cheese",
+        loadedCheesySauce: item?.sauces?.[0] ?? "Cheese Sauce",
         extraSauce: false,
       },
       cardImg,
@@ -626,6 +629,14 @@ const FoodCard = memo(function FoodCard({
               </span>
             </div>
           )}
+
+          {meta.showLoadedCheesySauceOptions && (
+            <div className="mt-2">
+              <span className="inline-block px-2 py-1 rounded-md bg-orange-50 text-orange-700 text-[10px] font-extrabold">
+                Sauce Options Available
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-between items-center mt-3 gap-2">
@@ -667,6 +678,9 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
   const [fryoSauce, setFryoSauce] = useState(
     defaults?.fryoSauce ?? item?.sauces?.[0] ?? "White Cheese"
   );
+  const [loadedCheesySauce, setLoadedCheesySauce] = useState(
+    defaults?.loadedCheesySauce ?? item?.sauces?.[0] ?? "Cheese Sauce"
+  );
   const [extraSauce, setExtraSauce] = useState(defaults?.extraSauce ?? false);
 
   useEffect(() => {
@@ -706,6 +720,9 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
     variantParts.push(fryoVariant);
     variantParts.push(fryoSauce);
     if (extraSauce) variantParts.push("ExtraSauce");
+  }
+  if (hasMeta.isLoadedCheesy) {
+    variantParts.push(loadedCheesySauce);
   }
   if (hasMeta.showSizeToggle && !hasMeta.isFryoTower) {
     variantParts.push(hasMeta.inferred8Only ? SIZE_8 : size);
@@ -852,6 +869,38 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
           </>
         )}
 
+      {hasMeta.isLoadedCheesy && (
+  <div className="mt-5">
+    <p className="text-sm font-extrabold text-gray-900 mb-2">Choose Sauce</p>
+    <div className="grid grid-cols-2 gap-2">
+      {(
+        item?.sauces || [
+          "White Cheese",
+          "Cheese Jalapeno",
+          "Peri Peri",
+          "Chili Garlic",
+          "Alfredo",
+          "Chipotle",
+          "Mint Mayo",
+        ]
+      ).map((sauce) => (
+        <button
+          key={sauce}
+          type="button"
+          onClick={() => setLoadedCheesySauce(sauce)}
+          className={`px-3 py-2.5 rounded-xl text-xs font-extrabold border min-h-[42px] ${
+            loadedCheesySauce === sauce
+              ? "bg-red-600 text-white border-red-600"
+              : "bg-white text-gray-700 border-gray-300"
+          }`}
+        >
+          {sauce}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
+
         {hasMeta.showSizeToggle && !hasMeta.showFriesOptions && !hasMeta.isFryoTower && (
           <div className="mt-5">
             <p className="text-sm font-extrabold text-gray-900 mb-2">Choose Size</p>
@@ -945,7 +994,11 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
                 ? SIZE_8
                 : size,
               bread: hasMeta.showBreadOptions ? breadType : undefined,
-              sauce: hasMeta.isFryoTower ? fryoSauce : undefined,
+              sauce: hasMeta.isFryoTower
+                ? fryoSauce
+                : hasMeta.isLoadedCheesy
+                ? loadedCheesySauce
+                : undefined,
               extraSauce: hasMeta.isFryoTower ? extraSauce : undefined,
             })
           }

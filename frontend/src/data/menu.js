@@ -1034,7 +1034,7 @@ export const MENU_DATA = [
       price: 89,
       type: "veg",
       popular: true,
-      image: friesImageMap["52.cheesy finger 2pcs and loaded fries.jpg"],
+      image: friesImageMap["52.cff.jpeg"],
     },
     // {
     //   id: "fries4",
