@@ -11,8 +11,8 @@ import {
   FiChevronRight,
   FiHeart,
   FiAward,
+  FiMapPin,
 } from "react-icons/fi";
-import { RiDiscountPercentFill } from "react-icons/ri";
 import {
   MdRestaurant,
   MdFastfood,
@@ -27,6 +27,14 @@ import frioImg from "../../assets/frio.jpeg";
 
 const DEFAULT_IMG =
   "https://images.pexels.com/photos/70497/pexels-photo-70497.jpeg";
+
+const SHOP = {
+  shortAddress: "Fusion Homes Market, Tech Zone IV, Greater Noida",
+  fullAddress:
+    "Shop No. 09, Fusion Homes Market, Tech Zone IV, Amrapali Dream Valley, Greater Noida, Uttar Pradesh 201318",
+  googleMapsLink:
+    "https://www.google.com/maps/search/?api=1&query=Shop+No.+09%2C+Fusion+Homes+Market%2C+Tech+Zone+IV%2C+Amrapali+Dream+Valley%2C+Greater+Noida%2C+Uttar+Pradesh+201318",
+};
 
 const BRAND = {
   y1: "#FFF8D9",
@@ -120,9 +128,11 @@ export default function Home() {
 
   const featuredItems = useMemo(() => {
     const list = [];
+
     for (const sec of filteredMenuData) {
       for (const item of sec.items || []) {
         if (list.length >= 8) break;
+
         list.push({
           id: item.id ?? `${sec.category}-${item.name}`,
           name: item.name,
@@ -131,8 +141,10 @@ export default function Home() {
           category: sec.category,
         });
       }
+
       if (list.length >= 8) break;
     }
+
     return list;
   }, [filteredMenuData]);
 
@@ -145,12 +157,14 @@ export default function Home() {
   );
 
   useEffect(() => {
-    if (heroSlides.length <= 1) return;
+    if (heroSlides.length <= 1 || reduceMotion) return;
+
     const interval = setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % heroSlides.length);
     }, 3500);
+
     return () => clearInterval(interval);
-  }, [heroSlides.length]);
+  }, [heroSlides.length, reduceMotion]);
 
   const goMenu = useCallback(
     (category) => {
@@ -181,101 +195,161 @@ export default function Home() {
         background: `linear-gradient(135deg, ${BRAND.y1}, ${BRAND.y2}, ${BRAND.y3})`,
       }}
     >
-      <div className="relative z-10 shadow-xl">
-        <div
-          className="px-4 sm:px-6 py-3.5 sm:py-4"
-          style={{
-            background: `linear-gradient(90deg, ${BRAND.r1}, ${BRAND.r2}, ${BRAND.r1})`,
-          }}
-        >
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 flex-wrap text-center">
-            <RiDiscountPercentFill className="text-2xl sm:text-3xl text-[#FBD536]" />
-            <div>
-              <p className="text-white/85 text-[10px] sm:text-xs font-bold tracking-[0.2em]">
-                LIMITED TIME OFFER
-              </p>
-              <h2 className="text-white text-base sm:text-2xl md:text-3xl font-black tracking-tight">
-                FLAT 15% OFF ON ALL ITEMS!
-              </h2>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <section className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 pt-4 sm:pt-6">
-        <div className="relative overflow-hidden rounded-lg sm:rounded-xl border border-white/70 bg-white/40 backdrop-blur-2xl shadow-[0_18px_45px_rgba(0,0,0,0.12)]">
-          <div className="relative p-2.5 sm:p-3">
-            <div className="relative h-[220px] sm:h-[320px] md:h-[430px] rounded-md sm:rounded-lg overflow-hidden bg-[linear-gradient(135deg,#fffaf0,#fff2cc)]">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={heroSlides[activeSlide]?.image}
-                  initial={reduceMotion ? { opacity: 1 } : { opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={reduceMotion ? { opacity: 1 } : { opacity: 0 }}
-                  transition={{ duration: 0.28 }}
-                  className="absolute inset-0 flex items-center justify-center p-2 sm:p-4 md:p-6"
-                >
-                  <img
-                    src={safeImg(heroSlides[activeSlide]?.image)}
-                    alt="Featured food"
-                    className="w-full h-full object-contain"
-                    loading="eager"
-                    decoding="async"
-                    onError={(e) => {
-                      e.currentTarget.src = DEFAULT_IMG;
-                    }}
-                  />
-                </motion.div>
-              </AnimatePresence>
+        <div className="rounded-2xl sm:rounded-3xl border border-white/70 bg-white/40 backdrop-blur-2xl shadow-[0_18px_45px_rgba(0,0,0,0.12)] overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            {/* Desktop only hero text */}
+            <div className="hidden lg:flex p-4 sm:p-6 lg:p-8 flex-col justify-center order-2 lg:order-1">
+              <p
+                className="text-xs sm:text-sm font-black tracking-[0.18em]"
+                style={{ color: BRAND.r1 }}
+              >
+                WHAT'S A SANDWICH • GREATER NOIDA
+              </p>
 
-              <div className="absolute inset-x-0 top-0 flex items-center justify-between p-3 sm:p-4">
+              <h1
+                className="mt-3 text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none"
+                style={{ color: BRAND.r2 }}
+              >
+                Fresh bites.
+                <br />
+                Fast cravings.
+              </h1>
+
+              <p className="mt-4 text-sm sm:text-base leading-6 text-gray-800/80 max-w-xl font-semibold">
+                Explore premium sandwiches, burgers, wraps, fries, drinks and
+                more, served with fresh ingredients and bold flavour.
+              </p>
+
+              <div className="mt-5 flex flex-wrap items-start gap-3 text-sm font-bold text-gray-800">
+                <div className="inline-flex items-center gap-2 rounded-xl bg-white/75 border border-white px-3 py-2 shadow-sm">
+                  <FiHeart style={{ color: BRAND.r1 }} />
+                  Loved menu picks
+                </div>
+
+                <div className="inline-flex items-center gap-2 rounded-xl bg-white/75 border border-white px-3 py-2 shadow-sm">
+                  <FiAward style={{ color: BRAND.r1 }} />
+                  Clean & premium presentation
+                </div>
+              </div>
+
+              <div className="mt-5 inline-flex items-start gap-2 rounded-2xl bg-white/80 border border-white/90 px-4 py-3 shadow-md max-w-xl">
+                <FiMapPin
+                  className="mt-0.5 flex-shrink-0"
+                  style={{ color: BRAND.r1 }}
+                />
+                <div>
+                  <p className="text-xs font-black tracking-wide text-gray-600">
+                    OUTLET LOCATION
+                  </p>
+                  <p className="text-sm sm:text-base font-bold text-gray-900">
+                    {SHOP.shortAddress}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={prevSlide}
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-md bg-white/95 border border-white text-gray-900 grid place-items-center shadow-lg active:scale-95"
-                  aria-label="Previous slide"
+                  type="button"
+                  onClick={() => goMenu(null)}
+                  className="px-5 py-3 rounded-xl text-white font-extrabold shadow-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+                  style={{
+                    background: `linear-gradient(90deg, ${BRAND.r1}, ${BRAND.r2})`,
+                  }}
                 >
-                  <FiChevronLeft className="text-lg" />
+                  Explore Menu <FiArrowRight />
                 </button>
 
-                <button
-                  onClick={nextSlide}
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-md bg-white/95 border border-white text-gray-900 grid place-items-center shadow-lg active:scale-95"
-                  aria-label="Next slide"
+                <a
+                  href={SHOP.googleMapsLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 py-3 rounded-xl bg-white border border-white/90 text-gray-900 font-extrabold shadow-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
-                  <FiChevronRight className="text-lg" />
-                </button>
+                  <FiMapPin />
+                  View Location
+                </a>
               </div>
             </div>
 
-            <div className="mt-3 flex justify-center gap-2">
-              {heroSlides.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveSlide(idx)}
-                  className={`h-2 rounded-sm transition-all ${
-                    activeSlide === idx ? "w-7 bg-[#B93228]" : "w-2 bg-white/90"
-                  }`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
+            {/* Carousel visible on all screens */}
+            <div className="relative order-1 lg:order-2 p-2.5 sm:p-3 lg:p-4">
+              <div className="relative h-[240px] sm:h-[340px] md:h-[430px] rounded-xl sm:rounded-2xl overflow-hidden bg-[linear-gradient(135deg,#fffaf0,#fff2cc)]">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={heroSlides[activeSlide]?.image}
+                    initial={reduceMotion ? { opacity: 1 } : { opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={reduceMotion ? { opacity: 1 } : { opacity: 0 }}
+                    transition={{ duration: 0.28 }}
+                    className="absolute inset-0 flex items-center justify-center p-2 sm:p-4 md:p-6"
+                  >
+                    <img
+                      src={safeImg(heroSlides[activeSlide]?.image)}
+                      alt="Featured food"
+                      className="w-full h-full object-contain"
+                      loading="eager"
+                      decoding="async"
+                      onError={(e) => {
+                        e.currentTarget.src = DEFAULT_IMG;
+                      }}
+                    />
+                  </motion.div>
+                </AnimatePresence>
+
+                <div className="absolute inset-x-0 top-0 flex items-center justify-between p-3 sm:p-4">
+                  <button
+                    type="button"
+                    onClick={prevSlide}
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/95 border border-white text-gray-900 grid place-items-center shadow-lg active:scale-95"
+                    aria-label="Previous slide"
+                  >
+                    <FiChevronLeft className="text-lg" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={nextSlide}
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/95 border border-white text-gray-900 grid place-items-center shadow-lg active:scale-95"
+                    aria-label="Next slide"
+                  >
+                    <FiChevronRight className="text-lg" />
+                  </button>
+                </div>
+
+                <div className="absolute bottom-3 inset-x-0 flex justify-center gap-2">
+                  {heroSlides.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setActiveSlide(idx)}
+                      className={`h-2 rounded-full transition-all ${
+                        activeSlide === idx ? "w-8 bg-[#B93228]" : "w-2 bg-white/90"
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Agar mobile par search bar bhi hide karna ho to hidden lg:block use karo */}
       <section className="relative z-10 max-w-5xl mx-auto px-3 sm:px-6 pt-5 pb-6">
         <motion.form
           onSubmit={(e) => {
             e.preventDefault();
             goMenuWithSearch();
           }}
-          initial={{ opacity: 0, y: 12 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="bg-white/95 backdrop-blur-xl shadow-[0_14px_36px_rgba(0,0,0,0.10)] rounded-lg sm:rounded-xl flex items-center gap-3 px-3 sm:px-5 py-3 border border-white/90"
+          className="bg-white/95 backdrop-blur-xl shadow-[0_14px_36px_rgba(0,0,0,0.10)] rounded-2xl flex items-center gap-3 px-3 sm:px-5 py-3 border border-white/90"
         >
           <div
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-md grid place-items-center shadow-md flex-shrink-0"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl grid place-items-center shadow-md flex-shrink-0"
             style={{
               background: `linear-gradient(135deg, ${BRAND.r1}, ${BRAND.r2})`,
             }}
@@ -293,7 +367,7 @@ export default function Home() {
 
           <button
             type="submit"
-            className="px-4 sm:px-5 py-2.5 rounded-md sm:rounded-lg text-white font-extrabold shadow-lg transition-all flex-shrink-0 text-sm sm:text-base"
+            className="px-4 sm:px-5 py-2.5 rounded-xl text-white font-extrabold shadow-lg transition-all flex-shrink-0 text-sm sm:text-base"
             style={{
               background: `linear-gradient(90deg, ${BRAND.r1}, ${BRAND.r2})`,
             }}
@@ -313,6 +387,7 @@ export default function Home() {
               <FiTrendingUp style={{ color: BRAND.r1 }} />
               Browse Categories
             </h2>
+
             <p className="text-sm font-bold mt-1 text-gray-900/70">
               Quick access to your favourites
             </p>
@@ -321,17 +396,18 @@ export default function Home() {
           <button
             type="button"
             onClick={() => goMenu(null)}
-            className="px-4 sm:px-5 py-2.5 sm:py-3 rounded-md sm:rounded-lg bg-white border border-red-100 shadow-lg font-extrabold transition-all flex items-center gap-2"
+            className="px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-white border border-red-100 shadow-lg font-extrabold transition-all flex items-center gap-2"
             style={{ color: BRAND.r1 }}
           >
             View All <FiArrowRight />
           </button>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
           {categories.map((category, i) => (
             <motion.button
               key={category.name}
+              type="button"
               initial={reduceMotion ? false : { opacity: 0, y: 8, scale: 0.96 }}
               whileInView={
                 reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }
@@ -344,7 +420,7 @@ export default function Home() {
               className="group"
             >
               <div
-                className="h-[92px] sm:h-[100px] rounded-lg border shadow-[0_10px_22px_rgba(185,50,40,0.10)] px-2 py-2.5 flex flex-col items-center justify-center text-center transition-all"
+                className="h-[96px] sm:h-[104px] rounded-2xl border shadow-[0_10px_22px_rgba(185,50,40,0.10)] px-2 py-2.5 flex flex-col items-center justify-center text-center transition-all"
                 style={{
                   background: `linear-gradient(180deg, #ffffff, ${BRAND.chip})`,
                   borderColor: BRAND.chipBorder,
@@ -353,7 +429,7 @@ export default function Home() {
                 <motion.div
                   whileHover={reduceMotion ? {} : { scale: 1.08 }}
                   transition={{ type: "spring", stiffness: 260, damping: 14 }}
-                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-md flex items-center justify-center text-white text-lg sm:text-xl shadow-md mb-2"
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-white text-lg sm:text-xl shadow-md mb-2"
                   style={{
                     background: `linear-gradient(135deg, ${BRAND.r1}, ${BRAND.r2})`,
                   }}
@@ -372,13 +448,14 @@ export default function Home() {
 
       <section className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 pb-8">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-lg bg-white/92 backdrop-blur-xl border border-white/90 shadow-[0_16px_35px_rgba(0,0,0,0.08)] p-5 flex items-center gap-4">
+          <div className="rounded-2xl bg-white/92 backdrop-blur-xl border border-white/90 shadow-[0_16px_35px_rgba(0,0,0,0.08)] p-5 flex items-center gap-4">
             <div
-              className="w-14 h-14 rounded-md grid place-items-center text-white shadow-lg"
+              className="w-14 h-14 rounded-xl grid place-items-center text-white shadow-lg"
               style={{ background: `linear-gradient(135deg, ${BRAND.r1}, ${BRAND.r2})` }}
             >
               <FiHeart className="text-xl" />
             </div>
+
             <div>
               <p className="text-sm font-black text-gray-900">Loved Flavours</p>
               <p className="text-xs sm:text-sm font-semibold text-gray-700/80">
@@ -387,13 +464,14 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="rounded-lg bg-white/92 backdrop-blur-xl border border-white/90 shadow-[0_16px_35px_rgba(0,0,0,0.08)] p-5 flex items-center gap-4">
+          <div className="rounded-2xl bg-white/92 backdrop-blur-xl border border-white/90 shadow-[0_16px_35px_rgba(0,0,0,0.08)] p-5 flex items-center gap-4">
             <div
-              className="w-14 h-14 rounded-md grid place-items-center text-white shadow-lg"
+              className="w-14 h-14 rounded-xl grid place-items-center text-white shadow-lg"
               style={{ background: `linear-gradient(135deg, ${BRAND.y2}, ${BRAND.r1})` }}
             >
               <FiAward className="text-xl" />
             </div>
+
             <div>
               <p className="text-sm font-black text-gray-900">Clean Quality</p>
               <p className="text-xs sm:text-sm font-semibold text-gray-700/80">
@@ -402,13 +480,14 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="rounded-lg bg-white/92 backdrop-blur-xl border border-white/90 shadow-[0_16px_35px_rgba(0,0,0,0.08)] p-5 flex items-center gap-4">
+          <div className="rounded-2xl bg-white/92 backdrop-blur-xl border border-white/90 shadow-[0_16px_35px_rgba(0,0,0,0.08)] p-5 flex items-center gap-4">
             <div
-              className="w-14 h-14 rounded-md grid place-items-center text-white shadow-lg"
+              className="w-14 h-14 rounded-xl grid place-items-center text-white shadow-lg"
               style={{ background: `linear-gradient(135deg, ${BRAND.r1}, ${BRAND.tomato})` }}
             >
               <FiStar className="text-xl" />
             </div>
+
             <div>
               <p className="text-sm font-black text-gray-900">Top Picks</p>
               <p className="text-xs sm:text-sm font-semibold text-gray-700/80">
@@ -428,6 +507,7 @@ export default function Home() {
             >
               <FiStar style={{ color: BRAND.r1 }} /> Featured Picks
             </h3>
+
             <p className="text-sm font-bold text-gray-900/70 mt-1">
               Quick popular items to start with
             </p>
@@ -436,7 +516,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => goMenu(null)}
-            className="px-5 py-3 rounded-md sm:rounded-lg bg-white/95 backdrop-blur-xl border border-white/80 shadow-lg font-extrabold transition-all flex items-center gap-2"
+            className="px-5 py-3 rounded-xl bg-white/95 backdrop-blur-xl border border-white/80 shadow-lg font-extrabold transition-all flex items-center gap-2"
             style={{ color: BRAND.r1 }}
           >
             Browse more <FiArrowRight />
@@ -451,7 +531,7 @@ export default function Home() {
               onClick={() => goMenu(it.category)}
               whileHover={reduceMotion ? {} : { y: -5, scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
-              className="group cursor-pointer rounded-lg bg-white/96 backdrop-blur-xl border border-white/90 shadow-[0_16px_34px_rgba(0,0,0,0.10)] transition-all overflow-hidden text-left w-full"
+              className="group cursor-pointer rounded-2xl bg-white/96 backdrop-blur-xl border border-white/90 shadow-[0_16px_34px_rgba(0,0,0,0.10)] transition-all overflow-hidden text-left w-full"
             >
               <div className="relative h-28 sm:h-40 overflow-hidden bg-[#fff7ef]">
                 <img
@@ -460,30 +540,28 @@ export default function Home() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                   decoding="async"
-                  onError={(e) => (e.currentTarget.src = DEFAULT_IMG)}
+                  onError={(e) => {
+                    e.currentTarget.src = DEFAULT_IMG;
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/0 to-black/0 pointer-events-none" />
-                <span
-                  className="absolute top-3 right-3 text-[10px] font-black text-white px-3 py-1 rounded-sm shadow-lg"
-                  style={{
-                    background: `linear-gradient(90deg, ${BRAND.r1}, ${BRAND.r2})`,
-                  }}
-                >
-                  15% OFF
-                </span>
               </div>
 
               <div className="p-3 sm:p-4">
                 <p className="text-[10px] sm:text-xs font-extrabold" style={{ color: BRAND.r1 }}>
                   {it.category}
                 </p>
+
                 <h4 className="text-sm sm:text-base font-black text-gray-900 mt-1 truncate tracking-tight">
                   {it.name}
                 </h4>
 
                 <div className="mt-3 flex items-center justify-between">
                   <span className="text-sm font-black text-gray-900">₹{it.price}</span>
-                  <span className="text-[11px] sm:text-xs font-extrabold" style={{ color: BRAND.r1 }}>
+                  <span
+                    className="text-[11px] sm:text-xs font-extrabold"
+                    style={{ color: BRAND.r1 }}
+                  >
                     View
                   </span>
                 </div>

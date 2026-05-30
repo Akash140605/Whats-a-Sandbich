@@ -3,7 +3,17 @@ import { useCart } from "../../context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-const SHOP = { lat: 28.6069241, lng: 77.4333633 };
+const SHOP = {
+  lat: 28.6069241,
+  lng: 77.4333633,
+  address:
+    "Shop No. 09, Fusion Homes Market, Tech Zone IV, Amrapali Dream Valley, Greater Noida, Uttar Pradesh 201318",
+  shortLabel: "Fusion Homes Market, Tech Zone IV",
+  mapLink: "https://maps.app.goo.gl/m2QPpFzDL4KBKgci9",
+  googleMapsSearch:
+    "https://www.google.com/maps/search/?api=1&query=Shop+No.+09%2C+Fusion+Homes+Market%2C+Tech+Zone+IV%2C+Amrapali+Dream+Valley%2C+Greater+Noida%2C+Uttar+Pradesh+201318",
+};
+
 const ALLOWED_KM = 6;
 
 const Y1 = "#FFF6C9";
@@ -11,6 +21,9 @@ const Y2 = "#FAD945";
 const Y3 = "#FBD536";
 const R1 = "#C03327";
 const R2 = "#7E2A17";
+
+const DEFAULT_IMAGE =
+  "https://images.pexels.com/photos/70497/pexels-photo-70497.jpeg";
 
 export default function Cart() {
   const { cart, addItem, removeItem, total } = useCart();
@@ -21,11 +34,11 @@ export default function Cart() {
   const [locationPopupOpen, setLocationPopupOpen] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
 
+  const safeCart = useMemo(() => (Array.isArray(cart) ? cart : []), [cart]);
+
   const delivery = total > 299 ? 0 : 0;
   const tax = Math.round(total * 0.05);
   const grandTotal = total + delivery + tax;
-
-  const safeCart = useMemo(() => (Array.isArray(cart) ? cart : []), [cart]);
 
   const requestLocationAndCheckout = () => {
     setLocError("");
@@ -40,7 +53,11 @@ export default function Cart() {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const user = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        const user = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+
         const km = haversineKm(user, SHOP);
         setChecking(false);
 
@@ -66,9 +83,14 @@ export default function Cart() {
             "We could not detect your location. Please turn on GPS/location and try again."
           );
         }
+
         setLocationPopupOpen(true);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
     );
   };
 
@@ -80,7 +102,9 @@ export default function Cart() {
         const result = await navigator.permissions.query({ name: "geolocation" });
 
         if (result.state === "denied") {
-          setLocationMessage("Location permission is blocked. Please enable it in browser settings.");
+          setLocationMessage(
+            "Location permission is blocked. Please enable it in browser settings."
+          );
           setLocationPopupOpen(true);
           return;
         }
@@ -93,22 +117,43 @@ export default function Cart() {
   if (!safeCart.length) {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center px-4 text-center pb-24"
+        className="min-h-screen flex items-center justify-center px-4 py-8 pb-24"
         style={{ background: `linear-gradient(135deg, ${Y1}, ${Y2}, ${Y3})` }}
       >
-        <div className="bg-white/80 backdrop-blur-xl border border-black/10 rounded-3xl p-8 shadow-2xl max-w-md w-full">
-          <h2 className="text-2xl font-extrabold text-gray-900">Your cart is empty</h2>
-          <p className="text-gray-700 mt-2 max-w-sm mx-auto">
-            Add delicious items from our menu and enjoy premium sandwiches & fast food.
+        <div className="w-full max-w-md bg-white/85 backdrop-blur-xl border border-black/10 rounded-3xl p-6 sm:p-8 shadow-2xl text-center">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+            Your cart is empty
+          </h2>
+
+          <p className="text-sm sm:text-base text-gray-700 mt-3">
+            Add delicious items from our menu and enjoy premium sandwiches and fast food.
           </p>
 
-          <Link
-            to="/menu"
-            className="mt-6 inline-flex px-6 py-3 text-white font-extrabold rounded-2xl shadow-lg hover:shadow-xl transition"
-            style={{ background: `linear-gradient(90deg, ${R1}, ${R2})` }}
-          >
-            Explore Menu
-          </Link>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <Link
+              to="/menu"
+              className="flex-1 inline-flex items-center justify-center px-6 py-3 text-white font-extrabold rounded-2xl shadow-lg hover:shadow-xl transition"
+              style={{ background: `linear-gradient(90deg, ${R1}, ${R2})` }}
+            >
+              Explore Menu
+            </Link>
+
+            <a
+              href={SHOP.googleMapsSearch}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 inline-flex items-center justify-center px-6 py-3 rounded-2xl border border-black/10 bg-white text-gray-900 font-extrabold shadow-sm hover:shadow-md transition"
+            >
+              Open Shop Map
+            </a>
+          </div>
+
+          <div className="mt-5 rounded-2xl bg-yellow-50 border border-yellow-200 p-4 text-left">
+            <p className="text-xs font-bold uppercase tracking-wide text-gray-600">
+              Outlet address
+            </p>
+            <p className="mt-1 text-sm font-semibold text-gray-900">{SHOP.address}</p>
+          </div>
         </div>
       </div>
     );
@@ -116,26 +161,47 @@ export default function Cart() {
 
   return (
     <div
-      className="min-h-screen pb-16"
+      className="min-h-screen pb-20"
       style={{ background: `linear-gradient(135deg, ${Y1}, ${Y2}, ${Y3})` }}
     >
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-5">
+      <div className="max-w-6xl mx-auto px-4 sm:px-5 lg:px-6 py-5 sm:py-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-5 sm:mb-6">
           <div>
-            <h2 className="text-2xl font-extrabold text-gray-900">Your Cart</h2>
-            <p className="text-sm text-gray-800/70">Review your items before checkout</p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+              Your Cart
+            </h2>
+            <p className="text-sm sm:text-base text-gray-800/75 mt-1">
+              Review your items before checkout
+            </p>
           </div>
 
-          <Link to="/menu" className="font-extrabold hover:underline" style={{ color: R1 }}>
-            + Add Items
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/menu"
+              className="inline-flex items-center justify-center px-4 py-2.5 rounded-2xl bg-white/85 border border-black/10 text-gray-900 font-extrabold shadow-sm hover:shadow-md transition"
+            >
+              + Add Items
+            </Link>
+
+            <a
+              href={SHOP.googleMapsSearch}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center px-4 py-2.5 rounded-2xl text-white font-extrabold shadow-lg hover:shadow-xl transition"
+              style={{ background: `linear-gradient(90deg, ${R1}, ${R2})` }}
+            >
+              Shop Location
+            </a>
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-3">
+        <OutletInfoCard />
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
+          <div className="xl:col-span-2 space-y-3 sm:space-y-4">
             {safeCart.map((item) => (
               <CartItem
-                key={`${item.id}-${item.size ?? ""}`}
+                key={`${item.id}-${item.size ?? ""}-${item.bread ?? ""}-${item.sauce ?? ""}`}
                 item={item}
                 addItem={addItem}
                 removeItem={removeItem}
@@ -143,7 +209,7 @@ export default function Cart() {
             ))}
 
             <BillSummary
-              className="lg:hidden mt-4"
+              className="xl:hidden mt-2"
               total={total}
               delivery={delivery}
               tax={tax}
@@ -154,7 +220,7 @@ export default function Cart() {
             />
           </div>
 
-          <div className="hidden lg:block">
+          <div className="hidden xl:block">
             <BillSummary
               className="sticky top-24"
               total={total}
@@ -179,38 +245,101 @@ export default function Cart() {
             onClick={() => setLocationPopupOpen(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              initial={{ scale: 0.96, y: 16, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              exit={{ scale: 0.96, y: 16, opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6"
+              className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-5 sm:p-6"
             >
               <h3 className="text-xl font-extrabold text-gray-900">Enable Location</h3>
-              <p className="mt-2 text-sm text-gray-700">{locationMessage}</p>
 
-              <div className="mt-5 flex gap-3">
+              <p className="mt-2 text-sm text-gray-700 leading-6">{locationMessage}</p>
+
+              <div className="mt-4 rounded-2xl bg-gray-50 border border-black/10 p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-600">
+                  Outlet
+                </p>
+                <p className="mt-1 text-sm font-semibold text-gray-900">
+                  {SHOP.address}
+                </p>
+              </div>
+
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={checkPermissionAndProceed}
-                  className="flex-1 py-3 rounded-2xl text-white font-extrabold shadow-lg"
+                  className="w-full py-3 rounded-2xl text-white font-extrabold shadow-lg"
                   style={{ background: `linear-gradient(90deg, ${R1}, ${R2})` }}
                 >
                   Turn On Location
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => setLocationPopupOpen(false)}
-                  className="px-5 py-3 rounded-2xl border border-black/10 bg-white font-extrabold text-gray-800"
+                <a
+                  href={SHOP.googleMapsSearch}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center py-3 rounded-2xl border border-black/10 bg-white font-extrabold text-gray-800"
                 >
-                  Close
-                </button>
+                  Open Shop Map
+                </a>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setLocationPopupOpen(false)}
+                className="mt-3 w-full px-5 py-3 rounded-2xl border border-black/10 bg-gray-50 font-extrabold text-gray-800"
+              >
+                Close
+              </button>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function OutletInfoCard() {
+  return (
+    <div className="bg-white/90 backdrop-blur-xl border border-black/10 rounded-3xl shadow-xl p-4 sm:p-5">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-600">
+            Outlet location
+          </p>
+          <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 mt-1">
+            {SHOP.shortLabel}
+          </h3>
+          <p className="text-sm sm:text-base text-gray-800/80 mt-1 leading-6">
+            {SHOP.address}
+          </p>
+          <p className="text-xs sm:text-sm font-semibold text-gray-700 mt-2">
+            Delivery available within {ALLOWED_KM} km from the outlet.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
+          <a
+            href={SHOP.mapLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center px-4 py-3 rounded-2xl bg-white border border-black/10 text-gray-900 font-extrabold shadow-sm hover:shadow-md transition"
+          >
+            Open App Link
+          </a>
+
+          <a
+            href={SHOP.googleMapsSearch}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center px-4 py-3 rounded-2xl text-white font-extrabold shadow-lg hover:shadow-xl transition"
+            style={{ background: `linear-gradient(90deg, ${R1}, ${R2})` }}
+          >
+            View on Google Maps
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
@@ -227,11 +356,13 @@ function BillSummary({
 }) {
   return (
     <div
-      className={`bg-white/90 backdrop-blur-xl border border-black/10 rounded-3xl shadow-2xl p-6 ${className}`}
+      className={`bg-white/92 backdrop-blur-xl border border-black/10 rounded-3xl shadow-2xl p-5 sm:p-6 ${className}`}
     >
-      <h3 className="font-extrabold text-lg mb-4 text-gray-900">Bill Summary</h3>
+      <h3 className="font-extrabold text-lg sm:text-xl mb-4 text-gray-900">
+        Bill Summary
+      </h3>
 
-      <div className="space-y-2 text-sm text-gray-800/80">
+      <div className="space-y-2.5 text-sm sm:text-base text-gray-800/80">
         <Row label="Item Total" value={`₹${total}`} />
         <Row label="Delivery" value={delivery ? `₹${delivery}` : "FREE"} highlight={!delivery} />
         <Row label="Tax (5%)" value={`₹${tax}`} />
@@ -239,27 +370,28 @@ function BillSummary({
 
       <div className="border-t border-black/10 my-4" />
 
-      <div className="flex justify-between font-extrabold text-xl">
+      <div className="flex justify-between items-center font-extrabold text-lg sm:text-xl">
         <span className="text-gray-900">Total</span>
         <span style={{ color: R1 }}>₹{grandTotal}</span>
       </div>
 
       {locError && (
-        <p className="mt-3 text-sm font-semibold" style={{ color: R1 }}>
+        <p className="mt-3 text-sm font-semibold leading-6" style={{ color: R1 }}>
           {locError}
         </p>
       )}
 
       <button
+        type="button"
         onClick={onCheckout}
         disabled={checking}
-        className="mt-5 w-full disabled:opacity-60 text-white font-extrabold py-3 rounded-2xl shadow-lg hover:shadow-xl transition"
+        className="mt-5 w-full disabled:opacity-60 text-white font-extrabold py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition"
         style={{ background: `linear-gradient(90deg, ${R1}, ${R2})` }}
       >
         {checking ? "Checking location..." : "Proceed to Checkout"}
       </button>
 
-      <p className="mt-3 text-xs text-gray-700/80 font-semibold">
+      <p className="mt-3 text-xs sm:text-sm text-gray-700/80 font-semibold leading-5">
         Free delivery above ₹299
       </p>
     </div>
@@ -267,60 +399,94 @@ function BillSummary({
 }
 
 function CartItem({ item, addItem, removeItem }) {
+  const itemMeta = [
+    item.size ? `Size: ${item.size}` : null,
+    item.bread ? `Bread: ${item.bread}` : null,
+    item.sauce ? `Sauce: ${item.sauce}` : null,
+    item.extraSauce ? "Extra Sauce" : null,
+  ].filter(Boolean);
+
+  const handleRemove = () => {
+    removeItem(item.id, item.size);
+  };
+
   return (
-    <div className="bg-white/88 backdrop-blur-xl border border-black/10 rounded-3xl shadow-lg hover:shadow-2xl transition p-3 sm:p-4 flex gap-3 items-center">
-      <div className="relative">
-        <img
-          src={item.image}
-          alt={item.name}
-          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-2xl border-2 border-white shadow-md"
-          onError={(e) => {
-            e.currentTarget.src =
-              "https://images.pexels.com/photos/70497/pexels-photo-70497.jpeg";
-          }}
-        />
-        <span
-          className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow"
-          style={{ backgroundColor: Y3 }}
-        />
-      </div>
+    <div className="bg-white/88 backdrop-blur-xl border border-black/10 rounded-3xl shadow-lg hover:shadow-2xl transition p-3 sm:p-4">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="relative flex-shrink-0">
+          <img
+            src={item.image || DEFAULT_IMAGE}
+            alt={item.name}
+            className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-2xl border-2 border-white shadow-md"
+            onError={(e) => {
+              e.currentTarget.src = DEFAULT_IMAGE;
+            }}
+          />
+          <span
+            className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow"
+            style={{ backgroundColor: Y3 }}
+          />
+        </div>
 
-      <div className="flex-1 min-w-0">
-        <h3 className="font-extrabold text-gray-900 truncate">{item.name}</h3>
-        {item.size && <p className="text-xs text-gray-700/70">Size: {item.size}</p>}
-        <p className="text-sm text-gray-800/80 mt-1 font-semibold">
-          ₹{item.price} × {item.qty}
-        </p>
-      </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-extrabold text-gray-900 text-sm sm:text-base leading-5 sm:leading-6 break-words">
+            {item.name}
+          </h3>
 
-      <div className="flex flex-col items-center gap-1">
-        <button
-          onClick={() => addItem(item)}
-          className="w-9 h-9 text-white rounded-2xl font-extrabold shadow hover:shadow-lg transition"
-          style={{ background: `linear-gradient(90deg, ${R1}, ${R2})` }}
-          aria-label="Increase quantity"
-        >
-          +
-        </button>
+          {itemMeta.length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-2">
+              {itemMeta.map((meta) => (
+                <span
+                  key={meta}
+                  className="text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-full bg-yellow-50 border border-yellow-200 text-gray-700"
+                >
+                  {meta}
+                </span>
+              ))}
+            </div>
+          )}
 
-        <span className="font-extrabold text-gray-900">{item.qty}</span>
+          <p className="text-sm text-gray-800/80 mt-2 font-semibold">
+            ₹{item.price} × {item.qty}
+          </p>
+          <p className="text-base sm:text-lg font-extrabold mt-1" style={{ color: R1 }}>
+            ₹{item.price * item.qty}
+          </p>
+        </div>
 
-        <button
-          onClick={() => removeItem(item.id, item.size)}
-          className="w-9 h-9 rounded-2xl font-extrabold transition border-2 bg-white/70 hover:bg-white"
-          style={{ borderColor: "rgba(0,0,0,0.12)", color: R1 }}
-          aria-label="Decrease quantity"
-        >
-          −
-        </button>
+        <div className="flex flex-col items-center gap-2 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => addItem(item)}
+            className="w-10 h-10 text-white rounded-2xl font-extrabold shadow hover:shadow-lg transition"
+            style={{ background: `linear-gradient(90deg, ${R1}, ${R2})` }}
+            aria-label="Increase quantity"
+          >
+            +
+          </button>
+
+          <span className="font-extrabold text-gray-900 text-sm sm:text-base">
+            {item.qty}
+          </span>
+
+          <button
+            type="button"
+            onClick={handleRemove}
+            className="w-10 h-10 rounded-2xl font-extrabold transition border-2 bg-white/70 hover:bg-white"
+            style={{ borderColor: "rgba(0,0,0,0.12)", color: R1 }}
+            aria-label="Decrease quantity"
+          >
+            −
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-function Row({ label, value, highlight }) {
+function Row({ label, value, highlight = false }) {
   return (
-    <div className="flex justify-between">
+    <div className="flex items-center justify-between gap-4">
       <span className="font-semibold text-gray-800">{label}</span>
       <span
         className={highlight ? "font-extrabold" : "font-extrabold text-gray-900"}

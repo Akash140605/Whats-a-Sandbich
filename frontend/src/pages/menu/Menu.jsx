@@ -31,21 +31,9 @@ const parsePrice = (v) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const applyDiscount = (originalPrice) =>
-  Math.round(parsePrice(originalPrice) * 0.85);
-
 const getBreadExtra = (breadType) => {
   if (breadType === BREAD_MULTIGRAINS) return BREAD_EXTRA;
   return 0;
-};
-
-const isNoDiscountSubmarine = (sectionCategory, itemName, size) => {
-  const name = normalize(itemName);
-  return (
-    normalize(sectionCategory) === "submarine sandwich" &&
-    size === SIZE_4 &&
-    (name.includes("veggie classic") || name.includes("masala veg sub"))
-  );
 };
 
 const dedupeMenuData = (data) => {
@@ -53,9 +41,10 @@ const dedupeMenuData = (data) => {
 
   return (Array.isArray(data) ? data : []).map((section) => {
     const items = (section.items || []).filter((item, idx) => {
-      const key = `${normalize(section.category)}|${normalize(item?.id ?? "")}|${normalize(
-        item?.name ?? idx
-      )}`;
+      const key = `${normalize(section.category)}|${normalize(
+        item?.id ?? ""
+      )}|${normalize(item?.name ?? idx)}`;
+
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -114,7 +103,9 @@ const getItemMeta = (item, sectionCategory) => {
 
 const getItemImage = (item, meta, size) => {
   if (meta.isSubmarine) {
-    if (size === SIZE_8) return item?.imageMonster || item?.image || DEFAULT_IMAGE;
+    if (size === SIZE_8) {
+      return item?.imageMonster || item?.image || DEFAULT_IMAGE;
+    }
     return item?.imageMini || item?.imageSmall || item?.image || DEFAULT_IMAGE;
   }
   return item?.image || DEFAULT_IMAGE;
@@ -142,18 +133,10 @@ const getBasePrice = ({ item, meta, size, friesSize, fryoVariant }) => {
   }
 
   const effectiveSize = meta.inferred8Only ? SIZE_8 : size;
+
   return effectiveSize === SIZE_8
     ? parsePrice(item?.priceMonster ?? item?.price)
     : parsePrice(item?.priceMini ?? item?.priceSmall ?? item?.price ?? 0);
-};
-
-const shouldApplyDiscount = ({ sectionCategory, item, meta, size }) => {
-  if (meta.isFries) return false;
-  if (meta.isDrinks) return false;
-  if (meta.isSimpleVeg) return false;
-  if (meta.isLoadedCheesy) return false;
-  if (isNoDiscountSubmarine(sectionCategory, item?.name, size)) return false;
-  return true;
 };
 
 export default function Menu() {
@@ -517,7 +500,7 @@ const FoodCard = memo(function FoodCard({
 
   const cardImg = useMemo(() => getItemImage(item, meta, size), [item, meta, size]);
 
-  const baseOriginalPrice = useMemo(
+  const basePrice = useMemo(
     () =>
       getBasePrice({
         item,
@@ -529,16 +512,8 @@ const FoodCard = memo(function FoodCard({
     [item, meta, size, friesSize]
   );
 
-  const discountAllowed = useMemo(
-    () => shouldApplyDiscount({ sectionCategory, item, meta, size }),
-    [sectionCategory, item, meta, size]
-  );
-
   const breadExtra = meta.showBreadOptions ? getBreadExtra(breadType) : 0;
-  const discountedBasePrice = discountAllowed
-    ? applyDiscount(baseOriginalPrice)
-    : baseOriginalPrice;
-  const finalPrice = discountedBasePrice + breadExtra;
+  const finalPrice = basePrice + breadExtra;
 
   const variantParts = [];
   if (meta.showFriesOptions) variantParts.push(friesSize);
@@ -569,16 +544,6 @@ const FoodCard = memo(function FoodCard({
 
   return (
     <div className="bg-white border-2 rounded-2xl transition-all p-3 flex gap-3 hover:shadow-2xl relative group min-h-[128px]">
-      {discountAllowed && (
-        <motion.div
-          animate={{ scale: [1, 1.04, 1] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-extrabold px-2 py-1 rounded-lg shadow-lg z-10"
-        >
-          15% OFF
-        </motion.div>
-      )}
-
       <img
         src={cardImg}
         alt={item?.name ?? "Food"}
@@ -641,11 +606,6 @@ const FoodCard = memo(function FoodCard({
 
         <div className="flex justify-between items-center mt-3 gap-2">
           <div className="min-w-0">
-            {finalPrice !== baseOriginalPrice + breadExtra && (
-              <span className="text-xs text-gray-500 line-through mr-2">
-                ₹{baseOriginalPrice + breadExtra}
-              </span>
-            )}
             <span className="font-extrabold text-red-600 text-sm sm:text-base">
               ₹{finalPrice}
             </span>
@@ -692,6 +652,7 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
   }, []);
 
   const cardImg = getItemImage(item, hasMeta, size);
+
   const basePrice = getBasePrice({
     item,
     meta: hasMeta,
@@ -700,19 +661,11 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
     fryoVariant,
   });
 
-  const discountAllowed = shouldApplyDiscount({
-    sectionCategory,
-    item,
-    meta: hasMeta,
-    size,
-  });
-
   const breadExtra = hasMeta.showBreadOptions ? getBreadExtra(breadType) : 0;
   const sauceExtra =
     hasMeta.isFryoTower && extraSauce ? parsePrice(item?.extraSaucePrice ?? 20) : 0;
 
-  const finalBasePrice = discountAllowed ? applyDiscount(basePrice) : basePrice;
-  const finalPrice = finalBasePrice + breadExtra + sauceExtra;
+  const finalPrice = basePrice + breadExtra + sauceExtra;
 
   const variantParts = [];
   if (hasMeta.showFriesOptions) variantParts.push(friesSize);
@@ -869,37 +822,37 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
           </>
         )}
 
-      {hasMeta.isLoadedCheesy && (
-  <div className="mt-5">
-    <p className="text-sm font-extrabold text-gray-900 mb-2">Choose Sauce</p>
-    <div className="grid grid-cols-2 gap-2">
-      {(
-        item?.sauces || [
-          "White Cheese",
-          "Cheese Jalapeno",
-          "Peri Peri",
-          "Chili Garlic",
-          "Alfredo",
-          "Chipotle",
-          "Mint Mayo",
-        ]
-      ).map((sauce) => (
-        <button
-          key={sauce}
-          type="button"
-          onClick={() => setLoadedCheesySauce(sauce)}
-          className={`px-3 py-2.5 rounded-xl text-xs font-extrabold border min-h-[42px] ${
-            loadedCheesySauce === sauce
-              ? "bg-red-600 text-white border-red-600"
-              : "bg-white text-gray-700 border-gray-300"
-          }`}
-        >
-          {sauce}
-        </button>
-      ))}
-    </div>
-  </div>
-)}
+        {hasMeta.isLoadedCheesy && (
+          <div className="mt-5">
+            <p className="text-sm font-extrabold text-gray-900 mb-2">Choose Sauce</p>
+            <div className="grid grid-cols-2 gap-2">
+              {(
+                item?.sauces || [
+                  "White Cheese",
+                  "Cheese Jalapeno",
+                  "Peri Peri",
+                  "Chili Garlic",
+                  "Alfredo",
+                  "Chipotle",
+                  "Mint Mayo",
+                ]
+              ).map((sauce) => (
+                <button
+                  key={sauce}
+                  type="button"
+                  onClick={() => setLoadedCheesySauce(sauce)}
+                  className={`px-3 py-2.5 rounded-xl text-xs font-extrabold border min-h-[42px] ${
+                    loadedCheesySauce === sauce
+                      ? "bg-red-600 text-white border-red-600"
+                      : "bg-white text-gray-700 border-gray-300"
+                  }`}
+                >
+                  {sauce}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {hasMeta.showSizeToggle && !hasMeta.showFriesOptions && !hasMeta.isFryoTower && (
           <div className="mt-5">
@@ -957,7 +910,7 @@ function CustomizeModal({ itemData, onClose, onAdd }) {
         <div className="mt-6 rounded-2xl bg-gray-50 border border-gray-200 p-4">
           <div className="flex justify-between text-sm mb-2">
             <span className="font-semibold text-gray-600">Base Price</span>
-            <span className="font-bold text-gray-900">₹{finalBasePrice}</span>
+            <span className="font-bold text-gray-900">₹{basePrice}</span>
           </div>
 
           {hasMeta.showBreadOptions && breadExtra > 0 && (
